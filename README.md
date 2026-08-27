@@ -36,7 +36,12 @@ raw object. `pk.pages()` answers "which pages have content?" in ~40 tokens inste
 **`.penpot/manifest.json`** — a cached description of your design system, written into
 your repo by `/penpot:sync`. Survives sessions, diffs in git, read instead of re-queried.
 
-**Commands** — `/penpot:sync`, `/penpot:inspect`, `/penpot:tokens`, `/penpot:component`.
+**Commands** — `/penpot:sync`, `/penpot:inspect`, `/penpot:tokens`, `/penpot:component`,
+`/penpot:audit`.
+
+**`scripts/penpot-audit.js`** — a hardening pass that turns the gotchas into machine-checkable
+invariants: token collisions, leaf-as-prefix violations, stray variant axes, variant errors,
+theme-fragile hardcoded fills, and colour tokens whose name disagrees with their hue.
 
 **A deliberately quiet hook** — `SessionStart` emits *one line* if a manifest exists, and
 nothing at all otherwise. Injecting the manifest on every session would recreate the
@@ -77,9 +82,28 @@ Connect your Penpot file with the Penpot MCP plugin, then:
 /penpot:sync         # cache the design system to .penpot/manifest.json
 /penpot:component    # build a component, token-bound, with variant handling
 /penpot:tokens       # inspect or extend the token layers
+/penpot:audit        # lint for silent design-system defects
 ```
 
 Commit `.penpot/manifest.json` to your repo. That is the persistence.
+
+## Measured
+
+Against a real 71-page file, five common questions asked the naive way vs through the
+helpers (characters of JSON returned):
+
+| Question | Naive | Helper | Ratio |
+|---|---|---|---|
+| Which pages have content? | 4,585 | 46 | 100x |
+| Components and their variant axes | 956 | 91 | 10x |
+| Token set overview | 11,273 | 71 | 159x |
+| Resolved button primary colours | 569 | 200 | 3x |
+| Token bindings on a shape | 676 | 331 | 2x |
+| **Total** | **18,059** | **739** | **24x** |
+
+Plugin overhead, per `claude plugin details`: **~245 tokens always-on**, with the
+`penpot-api` skill costing ~1.3k only when it actually fires — against ~6,000 for the
+bundled overview read unconditionally every session.
 
 ## Requirements
 
