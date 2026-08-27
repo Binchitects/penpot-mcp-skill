@@ -192,11 +192,11 @@ const ir = {
     resolvedByTheme: { Light, Dark }
   },
   components: [
-    { name: "Button", page: "Button",
+    { name: "Button", page: "Button", connect: null,
       axes: { Appearance: ["Primary", "Secondary", "Outline", "Subtle"],
               Size: ["Small", "Medium", "Large"] },
       variants }
-  ]
+  ].concat(require("./fixture-components.js"))
 };
 
 process.stdout.write(JSON.stringify(ir, null, 2) + "\n");

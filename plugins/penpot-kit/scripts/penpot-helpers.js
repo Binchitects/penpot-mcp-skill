@@ -168,6 +168,79 @@ pk.manifest = () => ({
   components: pk.components()
 });
 
+// ---------- safe writes ----------
+
+// Group a batch of mutations into ONE undo step.
+//
+// Without this, a 30-op token push is 30 separate undos for whoever is using the file.
+// To you it was one action; to them it is thirty presses of ctrl+Z. Any tool writing to a
+// shared design MUST group its writes, or it quietly degrades someone else's ability to
+// back out of your change.
+//
+//   const r = await pk.tx("push tokens", () => { ...mutations...; return summary; });
+pk.tx = async (label, fn) => {
+  const id = penpot.history.undoBlockBegin();
+  try {
+    const result = await fn();
+    return { ok: true, label: label, result: result };
+  } catch (e) {
+    return { ok: false, label: label, error: e.message };
+  } finally {
+    // finish in `finally` so a thrown mutation cannot leave the undo block open,
+    // which would silently swallow every subsequent edit into the same step.
+    penpot.history.undoBlockFinish(id);
+  }
+};
+
+// Named checkpoint in the file's version history. Call BEFORE anything destructive so
+// there is a labelled point to roll back to that does not depend on the undo stack.
+pk.checkpoint = async (label) => {
+  const f = penpot.currentFile;
+  if (!f || typeof f.saveVersion !== "function") return "saveVersion unavailable";
+  try { await f.saveVersion(label); return "saved: " + label; }
+  catch (e) { return "ERR: " + e.message; }
+};
+
+// ---------- code connect (metadata stored IN the .penpot file) ----------
+
+// Penpot can store arbitrary key/value data on a shape, persisted in the file itself.
+// That makes it the right home for the design->code mapping: it travels with the design,
+// every teammate sees it, and it needs no repo access. A repo-side config file can only
+// be read by people who have the repo.
+const CONNECT_KEY = "penpotKit.codeConnect";
+
+pk.connectSet = (shapeName, info) => {
+  const s = penpotUtils.findShape(x => x.name === shapeName);
+  if (!s) return "not found: " + shapeName;
+  s.setPluginData(CONNECT_KEY, JSON.stringify(info));
+  return { shape: shapeName, stored: info };
+};
+
+pk.connectGet = (shapeName) => {
+  const s = penpotUtils.findShape(x => x.name === shapeName);
+  if (!s) return null;
+  const raw = s.getPluginData(CONNECT_KEY);
+  if (!raw) return null;
+  try { return JSON.parse(raw); } catch (e) { return { malformed: raw }; }
+};
+
+// Every shape in the file carrying a code-connect record.
+pk.connectAll = () => {
+  const out = [];
+  penpotUtils.getPages().forEach(p => {
+    const pg = penpotUtils.getPageById(p.id);
+    if (!pg || !pg.root) return;
+    penpotUtils.findShapes(x => {
+      try { return !!x.getPluginData(CONNECT_KEY); } catch (e) { return false; }
+    }, pg.root).forEach(x => {
+      let v = null;
+      try { v = JSON.parse(x.getPluginData(CONNECT_KEY)); } catch (e) { v = { malformed: true }; }
+      out.push({ page: p.name, shape: x.name, connect: v });
+    });
+  });
+  return out;
+};
+
 storage.pk = pk;
 return "pk v" + pk.version + " ready: " +
   Object.keys(pk).filter(k => typeof pk[k] === "function").join(", ");

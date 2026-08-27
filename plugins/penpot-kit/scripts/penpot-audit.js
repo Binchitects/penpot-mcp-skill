@@ -82,6 +82,16 @@ penpotUtils.getPages().forEach(p => {
   });
 });
 
+// R6 - duplicate library component names. Detaching and re-componentising leaves
+// orphaned entries behind, which then show up twice in the assets panel and can confuse
+// codegen about which component is canonical.
+const nameCount = {};
+penpot.library.local.components.forEach((c) => {
+  nameCount[c.name] = (nameCount[c.name] || 0) + 1;
+});
+Object.entries(nameCount).filter(([, n]) => n > 1).forEach(([n, c]) =>
+  F("WARN", "duplicate-component", n + " appears " + c + " times in the local library"));
+
 return {
   findings,
   summary: {
