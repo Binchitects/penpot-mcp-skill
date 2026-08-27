@@ -1,0 +1,13 @@
+{
+  "SessionStart": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/manifest-pointer.sh\"",
+          "timeout": 5
+        }
+      ]
+    }
+  ]
+}

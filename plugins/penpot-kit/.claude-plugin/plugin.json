@@ -1,0 +1,13 @@
+{
+  "name": "penpot-kit",
+  "version": "1.0.0",
+  "description": "Token-efficient, persistent Penpot design workflows. Ships a corrected Plugin API reference (the bundled MCP docs have wrong signatures), a projection-based helper library, and a cached design-system manifest.",
+  "author": {
+    "name": "Binchitects",
+    "url": "https://github.com/Binchitects"
+  },
+  "homepage": "https://github.com/Binchitects/penpot-mcp-skill",
+  "repository": "https://github.com/Binchitects/penpot-mcp-skill",
+  "license": "MIT",
+  "keywords": ["penpot", "design", "design-system", "design-tokens", "mcp", "figma-alternative"]
+}
