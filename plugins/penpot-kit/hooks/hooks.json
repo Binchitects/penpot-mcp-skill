@@ -1,13 +1,16 @@
 {
-  "SessionStart": [
-    {
-      "hooks": [
-        {
-          "type": "command",
-          "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/manifest-pointer.sh\"",
-          "timeout": 5
-        }
-      ]
-    }
-  ]
+  "description": "Points at a cached Penpot design-system manifest when one exists; silent otherwise.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/manifest-pointer.sh\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
 }
