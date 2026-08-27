@@ -1,6 +1,7 @@
 # penpot-kit
 
-Token-efficient, persistent Penpot design workflows for Claude Code.
+Bidirectional Penpot design-to-code and code-to-design for Claude Code, plus the corrected
+API knowledge that makes working through the Penpot MCP server cheap and reliable.
 
 This plugin wraps the [Penpot MCP server](https://penpot.app) — it does **not** replace or
 re-implement it. You still connect your file with the Penpot MCP plugin as usual. What
@@ -86,6 +87,59 @@ Connect your Penpot file with the Penpot MCP plugin, then:
 ```
 
 Commit `.penpot/manifest.json` to your repo. That is the persistence.
+
+## Design to code, code to design
+
+```
+Penpot ──extract──▶ .penpot/ir.json ──emit──▶ css / dtcg / tailwind / tsx
+                          │
+                          ├──drift──▶ report (never writes)
+                          │
+code tokens ──plan──▶ .penpot/plan.json ──apply──▶ Penpot
+```
+
+Codegen runs in **Node**, never through the model: same IR in, same bytes out.
+
+### Why not Penpot's own generateStyle
+
+`penpot.generateStyle` is an inspection tool. For a button it emits:
+
+```css
+.primary-8c8ed4da172a { position: absolute; left: 109px; background: #0f6cbdFF; }
+```
+
+Canvas coordinates, hash-suffixed class names, and — fatally — **the token binding is
+destroyed**. penpot-kit reads structured properties plus `shape.tokens` instead, and emits:
+
+```css
+.button--primary { background: var(--button-primary-background-rest); }
+```
+
+### Variant axes become the component API
+
+A variant group with `Appearance` x `Size` is already a TypeScript signature:
+
+```tsx
+export type ButtonAppearance = "primary" | "secondary" | "outline" | "subtle";
+export type ButtonSize = "small" | "medium" | "large";
+```
+
+### The token chain survives into CSS
+
+Only the alias layer is re-declared per theme. Semantic tokens keep their reference, so
+they re-theme automatically and a rebrand stays a one-token edit:
+
+```css
+--button-primary-background-rest: var(--color-brand-background-rest);  /* semantic */
+:root[data-theme="dark"] { --color-brand-background-rest: #115EA3; }   /* alias */
+```
+
+### Asymmetric on purpose
+
+Tokens round-trip. Components do not — code carries behaviour, a11y and state with no
+representation in the design, so components are reported as drift and never overwritten
+from code. Alias-layer tokens are also refused on push, because the same name exists in
+both theme sets and a flat file cannot say which is meant.
 
 ## Measured
 
