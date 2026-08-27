@@ -21,6 +21,14 @@ Generate code from the connected Penpot design.
    ```
 
    Targets: `css`, `dtcg`, `tailwind`, `react` (comma-separated, default all).
+   Add `--connect .penpot/connect.json` to control React default prop values:
+
+   ```json
+   { "components": { "Button": { "defaults": { "Size": "Medium" } } } }
+   ```
+
+   Without it, defaults fall back to the first value of each axis, which is usually wrong
+   for a Size axis (Small|Medium|Large defaults to Small).
    Ask for `<outDir>` if the project has no obvious design directory; `src/design` is a
    reasonable default.
 

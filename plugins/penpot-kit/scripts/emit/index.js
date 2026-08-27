@@ -174,10 +174,16 @@ function emitTailwind(ir) {
 
 // ---------- target: React + TypeScript ----------
 
-function emitReact(ir, comp) {
+// `connect` is the optional .penpot/connect.json:
+//   { "components": { "Button": { "defaults": { "Size": "Medium" } } } }
+// Without it we fall back to the first value of each axis, which is frequently wrong --
+// a Size axis reads Small|Medium|Large, but Medium is almost always the intended default.
+function emitReact(ir, comp, connect) {
   const Name = pascal(comp.name);
   const base = kebab(Name);
   const axes = Object.entries(comp.axes);
+  const configured = ((connect || {}).components || {})[comp.name] || {};
+  const wanted = configured.defaults || {};
 
   const tokenOf = (sv) => {
     if (!sv) return null;
@@ -194,9 +200,11 @@ function emitReact(ir, comp) {
     "  " + kebab(axis) + "?: " + Name + pascal(axis) + ";"
   ).join("\n");
 
-  const defaults = axes.map(([axis, vals]) =>
-    kebab(axis) + " = " + JSON.stringify(kebab(vals[0]))
-  ).join(", ");
+  const defaults = axes.map(([axis, vals]) => {
+    const want = wanted[axis];
+    const chosen = want && vals.indexOf(want) > -1 ? want : vals[0];
+    return kebab(axis) + " = " + JSON.stringify(kebab(chosen));
+  }).join(", ");
 
   const clsLines = axes.map(([axis]) =>
     "    `" + base + "--${" + kebab(axis) + "}`,"
@@ -295,9 +303,14 @@ function main() {
   if (targets.includes("css")) w("tokens.css", emitCss(ir));
   if (targets.includes("dtcg")) w("tokens.json", emitDtcg(ir));
   if (targets.includes("tailwind")) w("tailwind.tokens.cjs", emitTailwind(ir));
+  const connectPath = arg("--connect", ".penpot/connect.json");
+  const connect = fs.existsSync(connectPath)
+    ? JSON.parse(fs.readFileSync(connectPath, "utf8"))
+    : null;
+
   if (targets.includes("react")) {
     for (const comp of ir.components || []) {
-      const r = emitReact(ir, comp);
+      const r = emitReact(ir, comp, connect);
       w(r.Name + ".tsx", r.tsx);
       w(r.name + ".css", r.css);
     }
