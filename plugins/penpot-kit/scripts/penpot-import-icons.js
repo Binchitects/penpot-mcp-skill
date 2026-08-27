@@ -23,7 +23,11 @@ const page = penpotUtils.getPageByName(plan.page);
 if (!page) {
   return "No page named '" + plan.page + "'. Create it in Penpot first, or re-plan with --page.";
 }
+// penpot.openPage is ASYNCHRONOUS. Immediately after the call penpot.currentPage is
+// still the previous page, so any shape created without waiting lands on the WRONG page.
+// This is silent and easy to miss: the shapes exist, just somewhere else.
 penpot.openPage(page);
+await new Promise((r) => setTimeout(r, 500));
 
 const lib = penpot.library.local;
 const existing = new Set(lib.components.map((c) => c.name));

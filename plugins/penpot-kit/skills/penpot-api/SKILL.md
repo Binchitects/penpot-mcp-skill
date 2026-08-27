@@ -96,6 +96,15 @@ mutating `shape.fills[0].fillColor` does nothing.
 **Token application is asynchronous.** Sleep ~100-500ms before reading back resolved
 values or exporting.
 
+**`penpot.openPage` is asynchronous.** `penpot.currentPage` is still the OLD page
+immediately after the call, so shapes created without waiting land on the wrong page and
+cleanup code reads the wrong children. Await ~400-500ms.
+
+**`createComponent` wraps its shape in a new board.** Your original reference becomes a
+CHILD. Create every shape first, componentise in a second pass, and pass
+`component.mainInstance()` to `createVariantContainer` -- passing the original fails with
+an opaque `[object ShapeProxy]` error.
+
 ## 5. Reference files
 
 Read these only when the task calls for them:

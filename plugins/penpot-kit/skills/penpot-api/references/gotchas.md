@@ -148,3 +148,18 @@ depending on user identity -- comment authorship, presence -- may be unavailable
 
 `page.findCommentThreads()` returns a Promise. Calling `.slice()` on it fails with
 "threads.slice is not a function".
+
+## 20. penpot.openPage is asynchronous
+
+```js
+penpot.openPage(other);
+penpot.currentPage.name;   // still the PREVIOUS page
+await new Promise(r => setTimeout(r, 400));
+penpot.currentPage.name;   // now correct
+```
+
+Creating shapes without waiting puts them on the wrong page. Nothing errors -- the shapes
+exist, just somewhere else -- and reading `page.root.children` before the switch settles
+returns the old page's contents, which makes cleanup code silently no-op.
+
+Always `await` ~400-500ms after `openPage` before creating or reading.
