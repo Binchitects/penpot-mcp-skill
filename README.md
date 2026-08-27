@@ -105,6 +105,17 @@ Plugin overhead, per `claude plugin details`: **~245 tokens always-on**, with th
 `penpot-api` skill costing ~1.3k only when it actually fires — against ~6,000 for the
 bundled overview read unconditionally every session.
 
+## Evals
+
+Six regression cases live in `plugins/penpot-kit/evals/`, one per documented failure mode.
+They require no live Penpot connection — each asks the model to write code, not execute it.
+
+```
+claude plugin eval penpot-kit@penpot-kit --ablation with-without
+```
+
+Not yet executed: `claude plugin eval` is in early access. See `evals/README.md`.
+
 ## Requirements
 
 - Claude Code
