@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Token-efficient, persistent workflows for designing in Penpot through the Penpot MCP server.",
-    "version": "2.2.0"
+    "version": "3.0.0"
   },
   "plugins": [
     {

@@ -1,14 +1,39 @@
 # penpot-kit
 
-Bidirectional Penpot **design-to-code** and **code-to-design** for Claude Code, plus the
-corrected API knowledge that makes working through the Penpot MCP server cheap and reliable.
+Bidirectional Penpot **design-to-code** and **code-to-design** for any AI coding agent,
+plus the corrected API knowledge that makes working through the Penpot MCP server cheap
+and reliable.
 
-This plugin wraps the Penpot MCP server — it does not replace it. You still connect your
+penpot-kit wraps the Penpot MCP server — it does not replace it. You still connect your
 file with the Penpot MCP browser plugin as usual.
+
+**It is not tied to any one agent harness.** The core is a zero-dependency Node CLI; Claude
+Code is one adapter among several.
 
 ---
 
 ## Install
+
+### Any harness (Cursor, Cline, Codex, OpenHands, Continue, Zed, Copilot, a custom agent, CI…)
+
+```bash
+npm i -g penpot-kit          # or use npx penpot-kit
+penpot-kit rules --target all   # writes instruction files in each harness's own convention
+penpot-kit doctor               # self-check
+```
+
+`rules` appends to existing files rather than clobbering them, and is idempotent.
+
+| Harness | File written |
+|---|---|
+| Codex, Amp, Jules, OpenHands | `AGENTS.md` |
+| Cursor | `.cursor/rules/penpot-kit.mdc` |
+| Cline / Roo Code | `.clinerules` |
+| GitHub Copilot | `.github/copilot-instructions.md` |
+| Windsurf | `.windsurfrules` |
+| Zed | `.rules` |
+
+### Claude Code
 
 ```
 /plugin marketplace add Binchitects/penpot-mcp-skill
@@ -17,12 +42,56 @@ file with the Penpot MCP browser plugin as usual.
 
 Then start a **new session** — plugins register at session start.
 
-**Requirements:** Claude Code, Node.js (for codegen), the Penpot MCP server with a file
-connected via the Penpot MCP plugin.
+**Requirements:** Node.js >= 18, and the Penpot MCP server with a file connected via the
+Penpot MCP browser plugin. Everything else is optional.
 
 ---
 
-## Commands
+## How portability works
+
+There is exactly one thing the CLI cannot do: talk to Penpot. Penpot is reached through its
+MCP server, which bridges to a browser plugin. So the work is split along that seam:
+
+```
+                 needs the live design                runs anywhere
+                 ---------------------                -------------
+  penpot-kit script extract  ──▶ execute_code  ──▶  .penpot/ir.json
+  penpot-kit script audit    ──▶ execute_code                │
+  penpot-kit script helpers  ──▶ execute_code                ▼
+                                                 penpot-kit emit / drift /
+                                                 push-tokens / validate
+```
+
+Every harness already knows how to do both halves: run a shell command, and call an MCP
+tool. Nothing else is required — no plugin system, no extension API, no SDK.
+
+```bash
+penpot-kit script extract     # print the script; your agent passes it to execute_code
+penpot-kit emit --ir .penpot/ir.json --out src/design
+penpot-kit drift --ir .penpot/ir.json --out src/design   # exit 1 gates CI
+penpot-kit docs gotchas       # the full corrected API reference
+```
+
+### CLI reference
+
+| Command | Runs | Purpose |
+|---|---|---|
+| `emit` | locally | Generate CSS vars, DTCG, Tailwind, React from an IR |
+| `drift` | locally | Report design/code divergence; **exit 1** when stale |
+| `push-tokens` | locally | Plan token changes from code back into the design |
+| `plan-icons` | locally | Scan an SVG directory into an import plan |
+| `validate` | locally | Validate generated `.tsx` |
+| `doctor` | locally | Self-check payload, parsing, SES trap |
+| `script <name>` | prints | `helpers`, `extract`, `audit`, `apply-tokens`, `import-icons` |
+| `docs <name>` | prints | `gotchas`, `tokens`, `variants`, `api`, `codegen` |
+| `rules --target` | locally | Write harness instruction files |
+
+---
+
+## Claude Code commands
+
+Slash-command equivalents of the CLI, for the Claude Code adapter. Every one of these maps
+to a `penpot-kit` CLI command that works in any harness.
 
 | Command | What it does |
 |---|---|

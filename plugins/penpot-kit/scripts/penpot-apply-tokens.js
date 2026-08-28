@@ -73,5 +73,5 @@ return {
   errors: failed,
   note: failed.length
     ? "Some ops failed. A 'path' error means the token name is both a leaf and a prefix."
-    : "All planned ops applied as ONE undo step. Re-run /penpot:sync to refresh manifest and IR."
+    : "All planned ops applied as ONE undo step. Re-extract to refresh the manifest and IR."
 };

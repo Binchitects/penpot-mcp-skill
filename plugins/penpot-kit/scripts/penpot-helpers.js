@@ -158,7 +158,7 @@ pk.summary = () => ({
     .map(s => s.name + ":" + s.tokens.length + (s.active ? "" : " (inactive)"))
 });
 
-// Full payload for .penpot/manifest.json - written by /penpot:sync.
+// Full payload for .penpot/manifest.json.
 pk.manifest = () => ({
   generated: new Date().toISOString(),
   file: penpot.currentFile ? penpot.currentFile.name : null,

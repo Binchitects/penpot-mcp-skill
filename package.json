@@ -1,0 +1,41 @@
+{
+  "name": "penpot-kit",
+  "version": "3.0.0",
+  "description": "Harness-agnostic Penpot design-to-code and code-to-design: deterministic codegen (CSS vars, W3C DTCG, Tailwind, React+TS), drift detection, and a corrected Penpot Plugin API reference.",
+  "bin": {
+    "penpot-kit": "bin/penpot-kit.js"
+  },
+  "main": "plugins/penpot-kit/scripts/emit/index.js",
+  "files": [
+    "bin/",
+    "plugins/penpot-kit/scripts/",
+    "plugins/penpot-kit/skills/",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "penpot",
+    "design-tokens",
+    "design-to-code",
+    "code-to-design",
+    "dtcg",
+    "tailwind",
+    "react",
+    "design-system",
+    "mcp",
+    "agent"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Binchitects/penpot-mcp-skill.git"
+  },
+  "homepage": "https://github.com/Binchitects/penpot-mcp-skill",
+  "license": "MIT",
+  "author": "Binchitects",
+  "dependencies": {},
+  "scripts": {
+    "test": "node bin/penpot-kit.js doctor"
+  }
+}

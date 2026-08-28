@@ -88,7 +88,7 @@ function main() {
     designChanges: report.design.length,
     verdict: report.staleness.length === 0
       ? "generated code is up to date with the design"
-      : "generated code is STALE — run /penpot:codegen"
+      : "generated code is STALE — regenerate (penpot-kit emit)"
   };
 
   if (process.argv.includes("--json")) {

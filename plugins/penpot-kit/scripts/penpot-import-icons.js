@@ -89,5 +89,5 @@ return {
   sample: imported.slice(0, 12),
   skippedSample: skipped.slice(0, 8),
   errors: failed.slice(0, 8),
-  note: "Imported as ONE undo step. Run /penpot:sync to refresh the manifest."
+  note: "Imported as ONE undo step. Re-extract to refresh the manifest."
 };
