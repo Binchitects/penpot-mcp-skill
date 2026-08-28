@@ -96,6 +96,10 @@ mutating `shape.fills[0].fillColor` does nothing.
 **Token application is asynchronous.** Sleep ~100-500ms before reading back resolved
 values or exporting.
 
+**You can only modify the CURRENT page.** Reads work across pages; writes throw
+`Cannot modify a page that is not the current page`. A loop that reads every page and
+writes to each will read fine and fail every write.
+
 **`penpot.openPage` is asynchronous.** `penpot.currentPage` is still the OLD page
 immediately after the call, so shapes created without waiting land on the wrong page and
 cleanup code reads the wrong children. Await ~400-500ms.

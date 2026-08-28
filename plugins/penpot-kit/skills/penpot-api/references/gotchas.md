@@ -163,3 +163,31 @@ exist, just somewhere else -- and reading `page.root.children` before the switch
 returns the old page's contents, which makes cleanup code silently no-op.
 
 Always `await` ~400-500ms after `openPage` before creating or reading.
+
+## 21. You can only modify the CURRENT page
+
+Writing to a shape on a page that is not open throws:
+
+```
+[PENPOT PLUGIN] Value not valid: Cannot modify a page that is not the current page
+```
+
+READING other pages works fine, which makes this easy to miss -- a loop that reads every
+page and writes to each one will read correctly and fail on every write. Combined with
+gotcha 20 (openPage is async) the correct pattern is:
+
+```js
+penpot.openPage(pg);
+await new Promise(r => setTimeout(r, 350));
+shape.setPluginData(key, value);
+```
+
+## 22. Component names are not unique, and codegen must handle it
+
+A design system can legitimately hold a Web `Avatar` and an Android `Avatar`. Both
+generate `Avatar.tsx`, and a naive emitter silently overwrites the first with the second.
+The page names may collide too, so page is not a reliable disambiguator.
+
+penpot-kit resolves this before writing anything: it prefers `connect.name` from the
+shape's plugin data, falls back to the page name, then to a numeric suffix, and always
+warns.

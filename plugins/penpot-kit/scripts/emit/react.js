@@ -30,8 +30,12 @@ function makeEmitReact(helpers) {
 
   // `connect` is the optional .penpot/connect.json:
   //   { "components": { "Button": { "defaults": { "Size": "Medium" } } } }
-  return function emitReact(ir, comp, connect) {
-    const Name = pascal(comp.name);
+  return function emitReact(ir, comp, connect, nameOverride) {
+    // A design system can legitimately hold two components with the SAME name -- a Web
+    // Avatar and an Android Avatar, for example. Both would generate Avatar.tsx and one
+    // would silently overwrite the other. The caller resolves collisions and passes an
+    // explicit name; `connect.name` lets the design itself decide.
+    const Name = pascal(nameOverride || comp.name);
     const base = kebab(Name);
     const axes = Object.entries(comp.axes);
 

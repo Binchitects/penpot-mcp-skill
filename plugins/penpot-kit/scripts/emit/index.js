@@ -212,10 +212,44 @@ function main() {
     : null;
 
   if (targets.includes("react")) {
+    // Resolve duplicate component names BEFORE writing anything. Two components called
+    // Avatar (one Web, one Android) would otherwise both write Avatar.tsx and the second
+    // would silently clobber the first -- a data-loss bug that looks like success.
+    const used = new Map();
+    const warnings = [];
+
     for (const comp of ir.components || []) {
-      const r = emitReact(ir, comp, connect);
+      const declared = ((comp.connect || {}).name) ||
+        (((connect || {}).components || {})[comp.name] || {}).name;
+      let chosen = declared || comp.name;
+
+      if (used.has(chosen)) {
+        const prev = used.get(chosen);
+        // Try the page name first; fall back to a numeric suffix when pages collide too.
+        let candidate = comp.page && comp.page !== prev.page
+          ? comp.page + " " + chosen
+          : null;
+        if (!candidate || used.has(candidate)) {
+          let n = 2;
+          while (used.has(chosen + " " + n)) n++;
+          candidate = chosen + " " + n;
+        }
+        warnings.push('duplicate component name "' + chosen + '" (' + prev.page +
+          " and " + comp.page + ') -> emitting the second as "' + candidate +
+          '". Set connect.name in Penpot to choose a stable name.');
+        chosen = candidate;
+      }
+      used.set(chosen, { page: comp.page });
+
+      const r = emitReact(ir, comp, connect, chosen);
       w(r.Name + ".tsx", r.tsx);
       w(r.name + ".css", r.css);
+    }
+
+    if (warnings.length) {
+      console.log("");
+      console.log("WARNINGS:");
+      warnings.forEach((x) => console.log("  " + x));
     }
   }
 
