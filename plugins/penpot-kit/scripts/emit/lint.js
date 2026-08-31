@@ -92,6 +92,12 @@ function textsOf(v) {
 
 function lint(ir, config) {
   const S = buildScales(ir);
+  // Every token name the system actually declares. A component may be BOUND to a token
+  // that no longer exists -- rename a token, or extract components against a different
+  // token set, and the binding survives while the target does not. CSS resolves a missing
+  // custom property to nothing, so the component renders completely invisible with no
+  // error anywhere. This is the single most silent failure in the whole pipeline.
+  const known = new Set(ir.tokens.values.map((t) => t.name));
   const findings = [];
   const add = (sev, rule, where, msg) => findings.push({ sev, rule, where, msg });
 
@@ -209,7 +215,25 @@ function lint(ir, config) {
             : " is not in the palette at all"));
       });
 
-      // R9 a component with no layout cannot respond to content
+      // R9 dangling token bindings
+      const checkBinding = (sv, what) => {
+        if (sv && sv.t && !known.has(sv.t)) {
+          add("ERROR", "dangling-token", tag,
+            what + ' is bound to "' + sv.t + '", which no token declares — CSS will resolve ' +
+            "it to nothing and the element renders invisible");
+        }
+      };
+      checkBinding(box.fill, "fill");
+      checkBinding(box.radius, "border-radius");
+      checkBinding(box.paddingLeft, "padding-left");
+      checkBinding(box.paddingRight, "padding-right");
+      if (box.stroke) {
+        checkBinding(box.stroke.color, "stroke colour");
+        checkBinding(box.stroke.width, "stroke width");
+      }
+      textsOf(v).forEach((t) => checkBinding((t.text || {}).color, t.name + " colour"));
+
+      // R10 a component with no layout cannot respond to content
       if (!v.layout && textsOf(v).length > 1) {
         add("WARN", "no-layout", tag, "has " + textsOf(v).length + " text nodes but no layout system");
       }

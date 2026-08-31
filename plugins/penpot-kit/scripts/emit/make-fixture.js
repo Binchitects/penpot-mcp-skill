@@ -47,6 +47,15 @@ const BRAND = { 10:"#061724", 20:"#082338", 30:"#0A2E4A", 40:"#0C3B5E", 50:"#0E4
   120:"#77B7F7", 130:"#96C6FA", 140:"#B4D6FA", 150:"#CFE4FA", 160:"#EBF3FC" };
 Object.entries(BRAND).forEach(([k, v]) => values.push(G("brand-" + k, "color", v)));
 
+const M3_RAMPS = {
+  "error-10":"#410E0B","error-20":"#601410","error-40":"#B3261E","error-80":"#F2B8B5","error-90":"#F9DEDC",
+  "success-10":"#0B2711","success-40":"#0F7B3C","success-80":"#A6E7BC","success-90":"#D7F5E2",
+  "warning-10":"#2B1700","warning-40":"#9A6100","warning-80":"#F5CE8A","warning-90":"#FCEBCD",
+  "neutral-variant-30":"#49454F","neutral-variant-50":"#79747E",
+  "neutral-variant-80":"#CAC4D0","neutral-variant-90":"#E7E0EC"
+};
+Object.entries(M3_RAMPS).forEach(([k, v]) => values.push(G(k, "color", v)));
+
 const NEUTRAL = { black:"#000000", "grey-8":"#141414", "grey-14":"#242424", "grey-16":"#292929",
   "grey-26":"#424242", "grey-33":"#545454", "grey-38":"#616161", "grey-46":"#757575",
   "grey-58":"#949494", "grey-68":"#ADADAD", "grey-74":"#BDBDBD", "grey-82":"#D1D1D1",
@@ -72,6 +81,35 @@ const ALIAS = {
   "color.subtle.background.pressed":    ["{grey-88}", "{grey-33}"]
 };
 Object.entries(ALIAS).forEach(([name, [l, d]]) => {
+  values.push({ set: "Alias/Light", name, type: "color", value: l });
+  values.push({ set: "Alias/Dark", name, type: "color", value: d });
+});
+
+// Material 3 colour roles, present in both alias sets so they swap with the theme.
+// Components bind to THESE; omitting them left every binding dangling and every
+// component invisible, with no error anywhere.
+const M3_ROLES = {
+  "color.surface.base":         ["{white}", "{grey-16}"],
+  "color.surface.variant":      ["{grey-96}", "{grey-26}"],
+  "color.surface.container":    ["{grey-94}", "{grey-26}"],
+  "color.on.surface.base":      ["{grey-14}", "{white}"],
+  "color.on.surface.variant":   ["{grey-38}", "{grey-74}"],
+  "color.primary.base":         ["{brand-80}", "{brand-100}"],
+  "color.primary.container":    ["{brand-150}", "{brand-40}"],
+  "color.on.primary.base":      ["{white}", "{brand-20}"],
+  "color.on.primary.container": ["{brand-20}", "{brand-150}"],
+  "color.error.base":           ["{error-40}", "{error-80}"],
+  "color.error.container":      ["{error-90}", "{error-20}"],
+  "color.on.error.base":        ["{white}", "{error-20}"],
+  "color.on.error.container":   ["{error-10}", "{error-90}"],
+  "color.success.base":         ["{success-40}", "{success-80}"],
+  "color.success.container":    ["{success-90}", "{success-10}"],
+  "color.warning.base":         ["{warning-40}", "{warning-80}"],
+  "color.warning.container":    ["{warning-90}", "{warning-10}"],
+  "color.outline.base":         ["{neutral-variant-50}", "{neutral-variant-50}"],
+  "color.outline.variant":      ["{neutral-variant-80}", "{neutral-variant-30}"]
+};
+Object.entries(M3_ROLES).forEach(([name, [l, d]]) => {
   values.push({ set: "Alias/Light", name, type: "color", value: l });
   values.push({ set: "Alias/Dark", name, type: "color", value: d });
 });
@@ -136,6 +174,31 @@ const DARK = {
   "button.disabled.foreground":"#616161","button.disabled.stroke":"#424242"
 };
 // Non-themed tokens resolve identically in both themes.
+const M3_LIGHT = {
+  "color.surface.base":"#FFFFFF","color.surface.variant":"#F5F5F5","color.surface.container":"#F0F0F0",
+  "color.on.surface.base":"#242424","color.on.surface.variant":"#616161",
+  "color.primary.base":"#0F6CBD","color.primary.container":"#CFE4FA",
+  "color.on.primary.base":"#FFFFFF","color.on.primary.container":"#082338",
+  "color.error.base":"#B3261E","color.error.container":"#F9DEDC",
+  "color.on.error.base":"#FFFFFF","color.on.error.container":"#410E0B",
+  "color.success.base":"#0F7B3C","color.success.container":"#D7F5E2",
+  "color.warning.base":"#9A6100","color.warning.container":"#FCEBCD",
+  "color.outline.base":"#79747E","color.outline.variant":"#CAC4D0"
+};
+const M3_DARK = {
+  "color.surface.base":"#292929","color.surface.variant":"#424242","color.surface.container":"#424242",
+  "color.on.surface.base":"#FFFFFF","color.on.surface.variant":"#BDBDBD",
+  "color.primary.base":"#479EF5","color.primary.container":"#0C3B5E",
+  "color.on.primary.base":"#082338","color.on.primary.container":"#CFE4FA",
+  "color.error.base":"#F2B8B5","color.error.container":"#601410",
+  "color.on.error.base":"#601410","color.on.error.container":"#F9DEDC",
+  "color.success.base":"#A6E7BC","color.success.container":"#0B2711",
+  "color.warning.base":"#F5CE8A","color.warning.container":"#2B1700",
+  "color.outline.base":"#79747E","color.outline.variant":"#49454F"
+};
+Object.assign(LIGHT, M3_LIGHT);
+Object.assign(DARK, M3_DARK);
+
 const staticResolved = {};
 values.filter(v => v.set === "Global").forEach(v => {
   staticResolved[v.name] = /^-?\d+$/.test(v.value) ? Number(v.value) : v.value;

@@ -109,7 +109,21 @@ function makeEmitReact(helpers) {
           "      <span className={" + JSON.stringify(base + "__" + kebab(t.name)) + "}>" +
           "{" + camel(t.name) + " ?? " + JSON.stringify(t.text.characters) + "}</span>"
         ).join("\n")
-      : "      {children}";
+      : (primaryText
+          ? "      {children ?? " + JSON.stringify(primaryText.characters) + "}"
+          : "      {children}");
+
+    // Our generated props must not collide with the DOM attributes we extend. A text node
+    // named "Title" becomes `title?: ReactNode`, but HTMLAttributes already declares
+    // `title?: string` (the tooltip attribute), and TS rejects the whole interface:
+    //   Interface 'CardProps' incorrectly extends 'HTMLAttributes<HTMLDivElement>'
+    // Omit every name we generate, so the component's own API always wins.
+    const ownProps = axes.map(([axis]) => camel(axis))
+      .concat(multi ? textNodes.map((t) => camel(t.name)) : []);
+    const baseType = attrType + "<" + domType + ">";
+    const extendsType = ownProps.length
+      ? "Omit<" + baseType + ", " + ownProps.map((p) => JSON.stringify(p)).join(" | ") + ">"
+      : baseType;
 
     const imports = multi
       ? 'import type { ' + attrType + ', ReactNode } from "react";'
@@ -126,7 +140,7 @@ function makeEmitReact(helpers) {
       "",
       types,
       "",
-      "export interface " + Name + "Props extends " + attrType + "<" + domType + "> {",
+      "export interface " + Name + "Props extends " + extendsType + " {",
       axisProps + slotProps,
       "}",
       "",
@@ -185,6 +199,31 @@ function makeEmitReact(helpers) {
       css += "  font-family: " + JSON.stringify(primaryText.fontFamily) + ", system-ui, sans-serif;\n";
       css += "  font-weight: " + primaryText.fontWeight + ";\n";
       css += "  line-height: " + primaryText.lineHeight + ";\n";
+    }
+    // Without a layout, or with fixed horizontal sizing, the component has no intrinsic
+    // width in CSS and collapses to zero. A Switch is a track and a thumb: it renders
+    // nothing unless its box size is carried across.
+    const fixedWidth = !L || (L.sizing && L.sizing.h === "fix");
+    if (fixedWidth && first.box && first.box.width) {
+      css += "  width: " + first.box.width + "px;\n";
+    }
+    if (!L && first.box && first.box.height) {
+      css += "  height: " + first.box.height + "px;\n";
+    }
+    // Base appearance on the ROOT class, always.
+    //
+    // Appearance used to be emitted only in the non-size axis loop, so a component whose
+    // ONLY axis is Size (an Avatar, say) got no background and no colour whatsoever -- it
+    // rendered as bare text. Axis rules below still override this; this is the floor.
+    if (first.box && first.box.fill) {
+      css += "  background: " + tokenOf(first.box.fill) + ";\n";
+    }
+    if (primaryText && primaryText.color) {
+      css += "  color: " + tokenOf(primaryText.color) + ";\n";
+    }
+    if (first.box && first.box.stroke) {
+      css += "  border: " + tokenOf(first.box.stroke.width) + " solid " +
+             tokenOf(first.box.stroke.color) + ";\n";
     }
     if (first.box && first.box.radius) {
       css += "  border-radius: " + tokenOf(first.box.radius) + ";\n";
