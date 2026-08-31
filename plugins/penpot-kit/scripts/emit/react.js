@@ -56,8 +56,32 @@ function makeEmitReact(helpers) {
       return sv.t ? "var(" + varName(sv.t) + ")" : String(sv.v);
     };
 
-    const first = comp.variants[0];
-    const structure = comp.structure || null;
+    // Which variant is the BASE matters. Taking variants[0] baked whichever state
+    // happened to be first into every descendant -- a Field showed the Success state's
+    // green border in every state, because the state axis only restyles the root while
+    // the border lives on the inner control. Use the variant matching the DEFAULT axis
+    // values, so the base rendering is the default state.
+    const defaultProps = {};
+    (Object.entries(comp.axes || {})).forEach(function (e) {
+      const axis = e[0], vals = e[1];
+      const w = (configured.defaults || fromRepo.defaults || {})[axis];
+      defaultProps[axis] = (w && vals.indexOf(w) > -1) ? w : vals[0];
+    });
+    const matches = (v) => v.props && Object.keys(defaultProps)
+      .every((k) => v.props[k] === defaultProps[k]);
+    const first = comp.variants.find(matches) || comp.variants[0];
+
+    // Looking a variant up by ONE axis value is ambiguous: a Switch with State=On has two
+    // variants (Disabled No and Yes) and find() returns whichever comes first, so the "on"
+    // rule inherited the DISABLED styling. Hold every other axis at its default.
+    const variantFor = (axis, val) => {
+      const want = Object.assign({}, defaultProps);
+      want[axis] = val;
+      return comp.variants.find((v) => v.props &&
+               Object.keys(want).every((k) => v.props[k] === want[k]))
+          || comp.variants.find((v) => v.props && v.props[axis] === val);
+    };
+    const structure = first.structure || comp.structure || null;
 
     // Text nodes in document order. Prefer the structural tree; fall back to the flat list
     // for IRs extracted before structure existed.
@@ -324,7 +348,7 @@ function makeEmitReact(helpers) {
 
     if (sizeAxis) {
       (comp.axes[sizeAxis] || []).forEach((val) => {
-        const v = comp.variants.find((x) => x.props && x.props[sizeAxis] === val);
+        const v = variantFor(sizeAxis, val);
         if (!v) return;
         css += "\n." + base + "--" + kebab(val) + " {\n";
         if (v.box && v.box.height) css += "  height: " + v.box.height + "px;\n";
@@ -342,7 +366,7 @@ function makeEmitReact(helpers) {
         // For a boolean axis only the truthy value gets a class; the falsy state is the
         // component's base appearance and needs no modifier.
         if (booly && val !== truthy(vals)) return;
-        const v = comp.variants.find((x) => x.props && x.props[axis] === val);
+        const v = variantFor(axis, val);
         if (!v) return;
         const mod = booly ? kebab(axis) : kebab(val);
         css += "\n." + base + "--" + mod + " {\n";
@@ -359,6 +383,81 @@ function makeEmitReact(helpers) {
         css += "}\n";
       });
     });
+
+    // ---------------- descendant-targeted axis rules ----------------
+    //
+    // A state axis usually restyles something INSIDE the component, not the root: a
+    // Field's border lives on its control, a Tablist's underline on its indicator. Root
+    // rules can never reach those. Walk each variant's tree against the base tree and
+    // emit only the properties that actually differ, scoped to the descendant:
+    //
+    //     .field--error .field__control { border: ... }
+    //
+    // Emitting the full descendant styling per variant instead would multiply the CSS and
+    // bury the one thing that changed.
+    if (structure) {
+      const propsOf = (b, v, isText) => {
+        let r = "";
+        if (isText) {
+          const bt = b.text || {}, vt = v.text || {};
+          if (tokenOf(vt.color) !== tokenOf(bt.color) && vt.color) {
+            r += "  color: " + tokenOf(vt.color) + ";\n";
+          }
+          if (vt.fontWeight && vt.fontWeight !== bt.fontWeight) {
+            r += "  font-weight: " + vt.fontWeight + ";\n";
+          }
+          if (vt.fontSize && vt.fontSize !== bt.fontSize) {
+            r += "  font-size: " + vt.fontSize + "px;\n";
+          }
+        } else {
+          const bb = b.box || {}, vb = v.box || {};
+          if (tokenOf(vb.fill) !== tokenOf(bb.fill)) {
+            r += "  background: " + (vb.fill ? tokenOf(vb.fill) : "transparent") + ";\n";
+          }
+          const bs = bb.stroke, vs2 = vb.stroke;
+          const key = (x) => x ? tokenOf(x.color) + "/" + tokenOf(x.width) : "none";
+          if (key(bs) !== key(vs2)) {
+            r += vs2
+              ? "  border: " + tokenOf(vs2.width) + " solid " + tokenOf(vs2.color) + ";\n"
+              : "  border: 0;\n";
+          }
+          if (typeof vb.opacity === "number" && vb.opacity !== bb.opacity) {
+            r += "  opacity: " + vb.opacity + ";\n";
+          }
+        }
+        return r;
+      };
+
+      // Walk two trees in lockstep. Variants of one component share a skeleton, so index
+      // alignment is safe; bail out if it ever is not.
+      const collectDiff = (baseNode, varNode, acc) => {
+        const bk = baseNode.children || [], vk = varNode.children || [];
+        if (bk.length !== vk.length) return;
+        for (let i = 0; i < bk.length; i++) {
+          const b = bk[i], v = vk[i];
+          if (b.name !== v.name || b.type !== v.type) continue;
+          const cls = base + "__" + kebab(b.name);
+          const rule = propsOf(b, v, b.type === "text");
+          if (rule && !acc[cls]) acc[cls] = rule;   // first differing occurrence wins
+          collectDiff(b, v, acc);
+        }
+      };
+
+      axes.forEach(([axis, vals]) => {
+        const booly = isBool(vals);
+        vals.forEach((val) => {
+          if (booly && val !== truthy(vals)) return;
+          const v = variantFor(axis, val);
+          if (!v || !v.structure || v === first) return;
+          const acc = {};
+          collectDiff(structure, v.structure, acc);
+          const mod = booly ? kebab(axis) : kebab(val);
+          Object.keys(acc).forEach((cls) => {
+            css += "\n." + base + "--" + mod + " ." + cls + " {\n" + acc[cls] + "}\n";
+          });
+        });
+      });
+    }
 
     return { tsx: tsx, css: css, name: base, Name: Name };
   };
