@@ -9,30 +9,44 @@ components are a starting point that a human must finish, not something to ship.
 
 ---
 
-## 1. Repeated structure becomes numbered props
+## 1. Repeated structure — FIXED in 3.7.0
 
-A Nav with four rows generates:
+A Nav with four rows used to generate `glyph`, `label`, `glyph2`, `label2`, `glyph3`...
+That was the worst thing the emitter did: not an API anyone would write, no `key`, no way
+to render a fifth row.
 
-```tsx
-glyph?: ReactNode;  label?: ReactNode;
-glyph2?: ReactNode; label2?: ReactNode;
-glyph3?: ReactNode; label3?: ReactNode;
-glyph4?: ReactNode; label4?: ReactNode;
-```
-
-This is the worst thing the emitter does. It is not an API anyone would write. Repetition
-in a design means a **list**, and a list should be data:
+It now detects a run of two or more sibling subtrees with the same SHAPE (same names,
+same types, recursively) and emits a list:
 
 ```tsx
-<Nav items={[{ icon: "home", label: "Dashboard", href: "/" }, ...]} />
+export interface NavItem {
+  glyph?: ReactNode;
+  label?: ReactNode;
+  selected?: boolean;
+}
+
+<Nav items={[{ glyph: "*", label: "Dashboard" }, ...]} />
 ```
 
-The emitter cannot currently tell "four rows because the designer drew four" from "four
-distinct slots". Detecting a repeated subtree (same shape, same child names) and emitting
-an `items` prop with a single row component is the correct fix, and it is not implemented.
+The item TYPE is named from the design's own node (`NavItem`, `TablistTab`) and the prop
+is its plural (`items`, `tabs`). Defaults come from what the designer actually drew, so
+the component renders correctly with no props at all.
 
-**Workaround:** treat list-like components as scaffolding. Take the CSS, rewrite the
-component by hand.
+**Per-item state comes with it.** A rule like `.nav--selected .nav__item` highlighted
+EVERY row. Where an axis difference lands inside a list item it now becomes a per-item
+boolean plus an item-scoped class:
+
+```css
+.nav__item--selected            { background: var(--color-primary-container); }
+.nav__item--selected .nav__label { color: var(--color-primary-base); font-weight: 600; }
+```
+
+### What it still does not catch
+
+Detection requires the repeated nodes to be **structurally identical siblings**. A
+Breadcrumb drawn as `Item1 / Sep1 / Item2 / Sep2 / Current` has five differently-named
+children, so it stays five slots — correctly, since nothing in the file says those are a
+list. The design has to express repetition as repetition.
 
 ## 2. Fixed pixel widths are baked in
 

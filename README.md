@@ -12,8 +12,8 @@ is one adapter among several.
 
 > **Read [`Limitations`](#limitations) before shipping generated components.** Token and
 > structure extraction are reliable. Generated components and screens are a **first
-> draft** — they compile and render, but they use numbered props for repeated structure,
-> bake in fixed widths, emit no semantic HTML, and have no interaction states.
+> draft** — they compile and render, but they bake in fixed widths, emit no semantic HTML,
+> and have no interaction states.
 
 ---
 
@@ -183,6 +183,20 @@ Only the alias layer is re-declared per theme; Global and Semantic keep their re
 Semantic tokens therefore re-theme automatically. Changing one Global token produces
 **one** drift finding, not twenty.
 
+### Repeated structure becomes a list
+
+Two or more sibling subtrees with the same shape are a list, not numbered slots:
+
+```tsx
+export interface NavItem { glyph?: ReactNode; label?: ReactNode; selected?: boolean; }
+<Nav items={[{ glyph: "*", label: "Dashboard" }, ...]} />
+```
+
+The item type is named from the design's node (`NavItem`, `TablistTab`), the prop is its
+plural, and defaults come from what the designer drew. Per-item state (which row is
+selected) becomes an item boolean plus `.nav__item--selected`, so one row highlights
+rather than all of them.
+
 ### Structure renders as structure
 
 Nested boxes become nested divs, so a Nav is four rows rather than eight stacked spans,
@@ -289,7 +303,7 @@ Stated in full in `penpot-kit docs limitations`. The short version:
 
 | Problem | Reality |
 |---|---|
-| **Numbered props** | A four-row Nav generates `glyph4?: ReactNode`. Repetition means a **list**; it should emit an `items` prop. Not implemented. |
+| ~~Numbered props~~ | **Fixed in 3.7.0.** Repeated structure now emits an `items` array with a named item type and per-item state. Alternating structure (Breadcrumb's `Item1/Sep1/Item2`) is still slots — the design has to express repetition as repetition. |
 | **Fixed widths** | `width: 220px` baked into Field and Select from the canvas artboard. |
 | **No semantic HTML** | Screens are all `<div>`/`<span>`. No `<form>`, `<input>`, `<label>`, `<nav>`, `<ul>`. Only names ending in "button" get a `<button>`. |
 | **No interaction states** | No `:hover`, `:focus-visible`, `:active`, no `aria-*`. Hover/pressed colours ARE extracted as tokens but nothing wires them to a selector. |

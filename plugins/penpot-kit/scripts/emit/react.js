@@ -83,9 +83,42 @@ function makeEmitReact(helpers) {
     };
     const structure = first.structure || comp.structure || null;
 
+    // ---- repeated structure is a LIST, not numbered slots ----
+    //
+    // Four identical rows in a design mean a list. Emitting glyph/label/glyph2/label2/...
+    // was the single worst thing this emitter did: not an API anyone would write, no key,
+    // no way to render a fifth row. Detect a run of >= 2 sibling subtrees with the same
+    // SHAPE (same names, same types, recursively) and emit an `items` prop instead.
+    const sigOf = (n) => n.type + ":" + n.name + "[" +
+      (n.children || []).map(sigOf).join(",") + "]";
+    const hasText = (n) => n.type === "text" || (n.children || []).some(hasText);
+
+    const lists = new Map();   // anchor node -> { group, template }
+    const inList = new Set();  // every node a list consumed
+    (function detect(node) {
+      const kids = node.children || [];
+      let i = 0;
+      while (i < kids.length) {
+        const sig = sigOf(kids[i]);
+        let j = i + 1;
+        while (j < kids.length && sigOf(kids[j]) === sig) j++;
+        // A run needs text to be worth parameterising; a row of identical dividers is
+        // structure, not data.
+        if (j - i >= 2 && hasText(kids[i])) {
+          const group = kids.slice(i, j);
+          lists.set(kids[i], { group: group, template: kids[i] });
+          group.forEach((g) => inList.add(g));
+        }
+        i = j;
+      }
+      kids.forEach(detect);
+    })(structure || { children: [] });
+
     // Text nodes in document order. Prefer the structural tree; fall back to the flat list
     // for IRs extracted before structure existed.
     const collect = (node, acc) => {
+      // Stop at a list item: its text is item DATA, not a component-level slot.
+      if (inList.has(node)) return acc;
       if (node.type === "text" && node.text) acc.push({ name: node.name, text: node.text });
       (node.children || []).forEach((c) => collect(c, acc));
       return acc;
@@ -110,6 +143,130 @@ function makeEmitReact(helpers) {
       });
     })();
 
+    // One `items` prop per detected list: a type, a prop name, its fields, and the data
+    // the designer actually drew as the default.
+    const constCase = (x) => x.replace(/([A-Z])/g, "_$1").toUpperCase();
+    const listSpecs = [];
+    (function () {
+      const usedProp = {};
+      lists.forEach(function (L, anchor) {
+        const TypeName = Name + pascal(L.template.name);
+        let prop = camel(L.template.name) + "s";
+        usedProp[prop] = (usedProp[prop] || 0) + 1;
+        if (usedProp[prop] > 1) prop = prop + usedProp[prop];
+
+        const textsIn = (n, acc) => {
+          if (n.type === "text") acc.push(n);
+          (n.children || []).forEach((c) => textsIn(c, acc));
+          return acc;
+        };
+        const seen = {};
+        const fields = textsIn(L.template, []).map(function (n) {
+          const b = camel(n.name);
+          seen[b] = (seen[b] || 0) + 1;
+          return { prop: seen[b] === 1 ? b : b + seen[b] };
+        });
+
+        const data = L.group.map(function (g) {
+          const gt = textsIn(g, []);
+          const o = {};
+          fields.forEach(function (f, i) {
+            o[f.prop] = gt[i] && gt[i].text ? gt[i].text.characters : "";
+          });
+          return o;
+        });
+
+        listSpecs.push({ anchor: anchor, TypeName: TypeName, prop: prop,
+                         fields: fields, data: data, template: L.template,
+                         group: L.group,
+                         CONST: "DEFAULT_" + constCase(prop) });
+      });
+    })();
+    const hasLists = listSpecs.length > 0;
+
+    // Once rows are data, "which row is selected" is data too. A rule like
+    //   .nav--selected .nav__item { background: ... }
+    // highlights EVERY row, which is visibly wrong. Diff each axis variant against the
+    // base and, where the difference lands inside a list item, turn it into a per-item
+    // boolean field plus an item-level modifier class.
+    const styleOf = (n) => {
+      const b = n.box || {}, t = n.text || {};
+      return [n.type === "text" ? tokenOf(t.color) : tokenOf(b.fill),
+              n.type === "text" ? t.fontWeight : (b.stroke ? tokenOf(b.stroke.color) : "")].join("|");
+    };
+    const ruleFor = (bn, vn) => {
+      let r = "";
+      if (vn.type === "text") {
+        const bt = bn.text || {}, vt = vn.text || {};
+        if (vt.color && tokenOf(vt.color) !== tokenOf(bt.color)) r += "  color: " + tokenOf(vt.color) + ";\n";
+        if (vt.fontWeight && vt.fontWeight !== bt.fontWeight) r += "  font-weight: " + vt.fontWeight + ";\n";
+      } else {
+        const bb = bn.box || {}, vb = vn.box || {};
+        if (tokenOf(vb.fill) !== tokenOf(bb.fill)) {
+          r += "  background: " + (vb.fill ? tokenOf(vb.fill) : "transparent") + ";\n";
+        }
+        const key = (x) => x ? tokenOf(x.color) + "/" + tokenOf(x.width) : "none";
+        if (key(bb.stroke) !== key(vb.stroke)) {
+          r += vb.stroke
+            ? "  border: " + tokenOf(vb.stroke.width) + " solid " + tokenOf(vb.stroke.color) + ";\n"
+            : "  border: 0;\n";
+        }
+      }
+      return r;
+    };
+    const handledInList = new Set();   // node names the item pass already covers
+
+    listSpecs.forEach((L) => { L.mods = []; });
+    if (hasLists) {
+      axes.forEach(([axis, vals]) => {
+        const booly = isBool(vals);
+        vals.forEach((val) => {
+          if (booly && val !== truthy(vals)) return;
+          const want = Object.assign({}, defaultProps); want[axis] = val;
+          const v = comp.variants.find((x) => x.props &&
+                      Object.keys(want).every((k) => x.props[k] === want[k]));
+          if (!v || !v.structure || v === first) return;
+          const modName = camel(val);
+          listSpecs.forEach((L) => {
+            // locate the same list in the variant tree by walking to the anchor's position
+            const findGroup = (bn, vn) => {
+              const bk = bn.children || [], vk = vn.children || [];
+              if (bk.length !== vk.length) return null;
+              for (let i = 0; i < bk.length; i++) {
+                if (bk[i] === L.anchor) return vk.slice(i, i + L.group.length);
+                const deep = findGroup(bk[i], vk[i]);
+                if (deep) return deep;
+              }
+              return null;
+            };
+            const vGroup = findGroup(structure, v.structure);
+            if (!vGroup) return;
+            const rules = {};
+            let anyIndex = -1;
+            L.group.forEach((bItem, gi) => {
+              const vItem = vGroup[gi];
+              if (!vItem) return;
+              const pair = (bn, vn) => {
+                const r = ruleFor(bn, vn);
+                if (r) {
+                  const cls = base + "__" + kebab(bn.name);
+                  if (!rules[cls]) rules[cls] = r;
+                  handledInList.add(bn.name);
+                  if (anyIndex < 0) anyIndex = gi;
+                }
+                const bk = bn.children || [], vk = vn.children || [];
+                if (bk.length === vk.length) bk.forEach((c, i) => pair(c, vk[i]));
+              };
+              pair(bItem, vItem);
+            });
+            if (Object.keys(rules).length) {
+              L.mods.push({ name: modName, rules: rules, index: anyIndex });
+            }
+          });
+        });
+      });
+    }
+
     // Semantic element: a Button must render a <button>, not a <div>.
     const isButton = /button$/i.test(comp.name);
     const el = isButton ? "button" : "div";
@@ -126,11 +283,33 @@ function makeEmitReact(helpers) {
       "  " + camel(axis) + "?: " + (isBool(vals) ? "boolean" : Name + pascal(axis)) + ";"
     ).join("\n");
 
+    const itemTypes = listSpecs.map((L) =>
+      "export interface " + L.TypeName + " {" + "\n" +
+      L.fields.map((f) => "  " + f.prop + "?: ReactNode;")
+        .concat((L.mods || []).map((m) => "  " + m.name + "?: boolean;")).join("\n") + "\n}"
+    ).join("\n\n");
+
+    const itemDefaults = listSpecs.map((L) => {
+      const data = L.data.map((row, i) => {
+        const out = Object.assign({}, row);
+        (L.mods || []).forEach((m) => { if (m.index === i) out[m.name] = true; });
+        return out;
+      });
+      return "const " + L.CONST + ": " + L.TypeName + "[] = " +
+             JSON.stringify(data, null, 2) + ";";
+    }).join("\n\n");
+
+    const itemsProps = listSpecs.map((L) =>
+      "  /** Rows rendered by this component; defaults to the design's own content. */" + "\n" +
+      "  " + L.prop + "?: " + L.TypeName + "[];").join("\n");
+
     const slotProps = multi
       ? "\n" + textNodes.map((t, i) =>
           "  /** \"" + t.name + "\" text slot from the design */\n" +
           "  " + slotNames[i] + "?: ReactNode;").join("\n")
       : "";
+
+    const allSlotProps = [slotProps, hasLists ? "\n" + itemsProps : ""].join("");
 
     const defaults = axes.map(([axis, vals]) => {
       if (isBool(vals)) return camel(axis) + " = false";
@@ -145,8 +324,11 @@ function makeEmitReact(helpers) {
         : "    `" + base + "--${" + camel(axis) + "}`,"
     ).join("\n");
 
-    const destructure = multi
-      ? "{ " + defaults + ", " + slotNames.join(", ") + ", className, children, ...rest }"
+    const destructured = []
+      .concat(multi ? slotNames : [])
+      .concat(listSpecs.map((L) => L.prop));
+    const destructure = destructured.length
+      ? "{ " + defaults + ", " + destructured.join(", ") + ", className, children, ...rest }"
       : "{ " + defaults + ", className, children, ...rest }";
 
     // ---------------- body ----------------
@@ -159,6 +341,38 @@ function makeEmitReact(helpers) {
       const render = (node, depth) => {
         const pad = "  ".repeat(depth + 3);
         const cls = base + "__" + kebab(node.name);
+
+        // A detected run of identical siblings renders once, mapped over its data.
+        if (lists.has(node)) {
+          const L = listSpecs.find((x) => x.anchor === node);
+          let fi = 0;
+          const renderItem = (n, d, isRoot) => {
+            const ipad = "  ".repeat(d + 3);
+            const icls = base + "__" + kebab(n.name);
+            if (n.type === "text") {
+              const f = L.fields[fi++];
+              return ipad + '<span className="' + icls + '">{item.' + f.prop + "}</span>";
+            }
+            const ik = (n.children || []).map((c) => renderItem(c, d + 1, false));
+            const keyAttr = isRoot ? " key={i}" : "";
+            // Per-item state is item DATA, so the modifier class is conditional per row.
+            const mods = isRoot ? (L.mods || []) : [];
+            const clsExpr = mods.length
+              ? "{" + JSON.stringify(icls) +
+                mods.map((m) => " + (item." + m.name + " ? " +
+                  JSON.stringify(" " + icls + "--" + m.name) + " : \"\")").join("") + "}"
+              : JSON.stringify(icls);
+            if (!ik.length) return ipad + "<div" + keyAttr + " className=" + clsExpr + " />";
+            return ipad + "<div" + keyAttr + " className=" + clsExpr + ">" + "\n" +
+                   ik.join("\n") + "\n" + ipad + "</div>";
+          };
+          const inner = renderItem(L.template, depth + 2, true);
+          return pad + "{(" + L.prop + " ?? " + L.CONST + ").map((item, i) => (" + "\n" +
+                 inner + "\n" + pad + "))}";
+        }
+        // Siblings the list already accounted for.
+        if (inList.has(node)) return null;
+
         if (node.type === "text") {
           const fallback = JSON.stringify(node.text ? node.text.characters : "");
           if (multi) {
@@ -168,11 +382,11 @@ function makeEmitReact(helpers) {
           usedChildren = true;
           return pad + '<span className="' + cls + '">{children ?? ' + fallback + "}</span>";
         }
-        const kids = (node.children || []).map((c) => render(c, depth + 1));
+        const kids = (node.children || []).map((c) => render(c, depth + 1)).filter(Boolean);
         if (!kids.length) return pad + '<div className="' + cls + '" />';
         return pad + '<div className="' + cls + '">\n' + kids.join("\n") + "\n" + pad + "</div>";
       };
-      const rendered = structure.children.map((c) => render(c, 0)).join("\n");
+      const rendered = structure.children.map((c) => render(c, 0)).filter(Boolean).join("\n");
       // A component with internals but no text (a Switch is a track plus a thumb) still
       // needs somewhere for callers to put content.
       body = (multi || usedChildren) ? rendered : rendered + "\n      {children}";
@@ -182,14 +396,16 @@ function makeEmitReact(helpers) {
         : "      {children}";
     }
 
-    const imports = multi
+    const imports = (multi || hasLists)
       ? 'import type { ' + attrType + ', ReactNode } from "react";'
       : 'import type { ' + attrType + ' } from "react";';
 
     // Generated props must not collide with the DOM attributes we extend. A text node named
     // "Title" becomes `title?: ReactNode` while HTMLAttributes declares `title?: string`,
     // and TS rejects the whole interface.
-    const ownProps = axes.map(([axis]) => camel(axis)).concat(multi ? slotNames : []);
+    const ownProps = axes.map(([axis]) => camel(axis))
+      .concat(multi ? slotNames : [])
+      .concat(listSpecs.map((L) => L.prop));
     const baseType = attrType + "<" + domType + ">";
     const extendsType = ownProps.length
       ? "Omit<" + baseType + ", " + ownProps.map((p) => JSON.stringify(p)).join(" | ") + ">"
@@ -206,8 +422,12 @@ function makeEmitReact(helpers) {
       "",
       types,
       "",
+      itemTypes,
+      itemTypes ? "" : null,
+      itemDefaults,
+      itemDefaults ? "" : null,
       "export interface " + Name + "Props extends " + extendsType + " {",
-      axisProps + slotProps,
+      axisProps + allSlotProps,
       "}",
       "",
       "export function " + Name + "(" + destructure + ": " + Name + "Props) {",
@@ -341,6 +561,20 @@ function makeEmitReact(helpers) {
       });
     }
 
+    // Per-item modifier rules. The item root gets `.nav__item--selected`; anything deeper
+    // is scoped under it, so only the selected ROW restyles rather than all of them.
+    listSpecs.forEach((L) => {
+      const rootCls = base + "__" + kebab(L.template.name);
+      (L.mods || []).forEach((m) => {
+        Object.keys(m.rules).forEach((cls) => {
+          const sel = cls === rootCls
+            ? "." + rootCls + "--" + m.name
+            : "." + rootCls + "--" + m.name + " ." + cls;
+          css += "\n" + sel + " {\n" + m.rules[cls] + "}\n";
+        });
+      });
+    });
+
     // ---------------- axis modifiers ----------------
     const axisNames = axes.map((a) => a[0]);
     const sizeAxis = axisNames.find((a) => /size/i.test(a));
@@ -436,6 +670,9 @@ function makeEmitReact(helpers) {
         for (let i = 0; i < bk.length; i++) {
           const b = bk[i], v = vk[i];
           if (b.name !== v.name || b.type !== v.type) continue;
+          // Anything the per-item pass already covers is per-ROW state, not component
+          // state; emitting it again at component level would highlight every row.
+          if (handledInList.has(b.name)) { collectDiff(b, v, acc); continue; }
           const cls = base + "__" + kebab(b.name);
           const rule = propsOf(b, v, b.type === "text");
           if (rule && !acc[cls]) acc[cls] = rule;   // first differing occurrence wins

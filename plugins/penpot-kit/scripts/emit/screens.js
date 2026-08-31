@@ -48,6 +48,80 @@ const tokenOf = (sv) => {
   return sv.t ? "var(" + varName(sv.t) + ")" : (sv.v != null ? String(sv.v) : null);
 };
 
+// A screen's copy has to land on the right prop. When a component detected a repeated run
+// and emitted an `items` array, the instance's text nodes are ITEM DATA, not slots -- so
+// this mirrors the component emitter's list detection and builds a per-text PLAN saying,
+// for each text node in document order, whether it is a slot or a field of item N.
+function buildTextPlan(structure) {
+  if (!structure) return null;
+  const sigOf = (n) => n.type + ":" + n.name + "[" +
+    (n.children || []).map(sigOf).join(",") + "]";
+  const hasText = (n) => n.type === "text" || (n.children || []).some(hasText);
+
+  const lists = new Map(), inList = new Set();
+  (function detect(node) {
+    const kids = node.children || [];
+    let i = 0;
+    while (i < kids.length) {
+      const sig = sigOf(kids[i]);
+      let j = i + 1;
+      while (j < kids.length && sigOf(kids[j]) === sig) j++;
+      if (j - i >= 2 && hasText(kids[i])) {
+        const g = kids.slice(i, j);
+        lists.set(kids[i], { group: g, template: kids[i] });
+        g.forEach((x) => inList.add(x));
+      }
+      i = j;
+    }
+    kids.forEach(detect);
+  })(structure);
+
+  const textsIn = (n, acc) => {
+    if (n.type === "text") acc.push(n);
+    (n.children || []).forEach((c) => textsIn(c, acc));
+    return acc;
+  };
+
+  const usedProp = {}, specs = new Map();
+  lists.forEach((L, anchor) => {
+    let prop = camel(L.template.name) + "s";
+    usedProp[prop] = (usedProp[prop] || 0) + 1;
+    if (usedProp[prop] > 1) prop = prop + usedProp[prop];
+    const seen = {};
+    const fields = textsIn(L.template, []).map((n) => {
+      const b = camel(n.name);
+      seen[b] = (seen[b] || 0) + 1;
+      return seen[b] === 1 ? b : b + seen[b];
+    });
+    specs.set(anchor, { prop: prop, fields: fields, group: L.group });
+  });
+
+  const plan = [], slotSeen = {};
+  (function walk(node) {
+    (node.children || []).forEach((child) => {
+      if (specs.has(child)) {
+        const sp = specs.get(child);
+        sp.group.forEach((g, gi) => {
+          textsIn(g, []).forEach((t, fi) => {
+            plan.push({ kind: "item", listProp: sp.prop, itemIndex: gi, field: sp.fields[fi] });
+          });
+        });
+        return;
+      }
+      if (inList.has(child)) return;
+      if (child.type === "text") {
+        const b = camel(child.name);
+        slotSeen[b] = (slotSeen[b] || 0) + 1;
+        plan.push({ kind: "slot", prop: slotSeen[b] === 1 ? b : b + slotSeen[b] });
+        return;
+      }
+      walk(child);
+    });
+  })(structure);
+
+  return { plan: plan, hasLists: specs.size > 0 };
+}
+
 // Resolve component -> generated export name, mirroring the component emitter so the
 // screen imports the file that actually exists.
 function nameMap(ir) {
@@ -80,11 +154,13 @@ function nameMap(ir) {
         seen[b] = (seen[b] || 0) + 1;
         return seen[b] === 1 ? b : b + seen[b];
       });
+      const base = (c.variants || [])[0] || {};
       map[c.name] = {
         Name: pascal(chosen), axes: c.axes || {},
         multiText: texts.length > 1,
         slots: texts.map((t) => t.name),
-        slotNames: slotNames
+        slotNames: slotNames,
+        textPlan: buildTextPlan(base.structure || c.structure || null)
       };
     }
   });
@@ -170,13 +246,32 @@ function jsxFor(screenBase, node, map, depth, imports) {
         : pad + open + " />";
     }
 
-    // Match overrides to slots BY POSITION, not by name: names repeat (four `label`
-    // nodes in a Nav) and the deduplicated prop for the nth node is slotNames[n].
-    overrides.forEach((t, i) => {
-      const prop = entry.slotNames[i];
-      if (!prop) return;
-      props.push(prop + "={" + JSON.stringify(t.characters) + "}");
-    });
+    // Match overrides to props BY POSITION. Where the component emitted an `items` array,
+    // the screen's copy becomes array data rather than a numbered prop.
+    const plan = entry.textPlan && entry.textPlan.plan;
+    if (plan && plan.length) {
+      const arrays = {};
+      overrides.forEach((t, i) => {
+        const step = plan[i];
+        if (!step) return;
+        if (step.kind === "slot") {
+          props.push(step.prop + "={" + JSON.stringify(t.characters) + "}");
+        } else {
+          arrays[step.listProp] = arrays[step.listProp] || [];
+          arrays[step.listProp][step.itemIndex] = arrays[step.listProp][step.itemIndex] || {};
+          arrays[step.listProp][step.itemIndex][step.field] = t.characters;
+        }
+      });
+      Object.keys(arrays).forEach((prop) => {
+        props.push(prop + "={" + JSON.stringify(arrays[prop].filter(Boolean)) + "}");
+      });
+    } else {
+      overrides.forEach((t, i) => {
+        const prop = entry.slotNames[i];
+        if (!prop) return;
+        props.push(prop + "={" + JSON.stringify(t.characters) + "}");
+      });
+    }
 
     return pad + "<" + entry.Name + (props.length ? " " + props.join(" ") : "") + " />";
   }
