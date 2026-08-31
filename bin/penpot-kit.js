@@ -46,6 +46,7 @@ const DOC_FILES = {
   gotchas: path.join(DOCS, "gotchas.md"),
   tokens: path.join(DOCS, "tokens.md"),
   variants: path.join(DOCS, "variants.md"),
+  limitations: path.join(DOCS, "limitations.md"),
   api: path.join(SKILLS, "penpot-api", "SKILL.md"),
   codegen: path.join(SKILLS, "penpot-codegen", "SKILL.md")
 };
@@ -161,7 +162,16 @@ Never return raw Penpot objects from \`execute_code\`. On a 71-page file, return
   \`execute_code\` — including inside a string or comment. Penpot runs under SES and rejects
   the whole script.
 
-Full reference: \`npx penpot-kit docs gotchas\`
+## Generated output is a first draft
+
+Token and structure extraction are reliable. Generated COMPONENTS are not shippable as-is:
+repeated structure becomes numbered props (\`glyph4\`), widths are baked in, screens emit
+no semantic HTML (no \`<form>\`, \`<input>\`, \`<label>\`, \`<nav>\`), and there are no
+interaction states or aria attributes. Do not tell anyone otherwise.
+
+Full detail: \`npx penpot-kit docs limitations\`
+
+Full API reference: \`npx penpot-kit docs gotchas\`
 `;
 }
 

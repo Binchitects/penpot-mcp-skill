@@ -116,6 +116,8 @@ Read these only when the task calls for them:
 - `references/tokens.md` — three-layer token architecture, themes, the activation trap
 - `references/variants.md` — creating variant components correctly
 - `references/gotchas.md` — the full annotated list with reproduction notes
+- `references/limitations.md` — what generated output does BADLY. Read before telling
+  anyone the components are ready to ship; they are a first draft.
 
 ## 6. Working conventions
 

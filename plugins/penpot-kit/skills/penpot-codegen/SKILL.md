@@ -1,81 +1,117 @@
 ---
 name: penpot-codegen
-description: Use when moving between Penpot designs and code in either direction - generating CSS variables, W3C DTCG tokens, Tailwind config or React components from a Penpot design, detecting drift between design and code, or pushing token changes from code back into Penpot.
+description: Use when moving between Penpot designs and code in either direction - generating CSS variables, W3C DTCG tokens, Tailwind config, React components or app screens from a Penpot design, detecting drift between design and code, pushing token changes from code back into Penpot, or importing an SVG icon set. Also covers the known limitations of generated output.
 ---
 
 # Penpot design-to-code and code-to-design
 
 Bidirectional, but deliberately asymmetric. Tokens round-trip; components do not.
 
-## Never use generateStyle for code generation
+**Before promising anything about generated components, read
+`references/limitations.md`.** The pipeline is sound and the output is a first draft, not
+shippable code. Saying otherwise sets the user up to discover it themselves.
 
-`penpot.generateStyle` and `penpot.generateMarkup` are INSPECTION tools. Their output is
-unusable as production code:
+## The two halves
 
-- `position: absolute; left: 109px` — the shape's canvas coordinates
-- `.primary-8c8ed4da172a` — hash-suffixed class names that change when a shape is recreated
-- `background: #0f6cbdFF` — **the token binding is destroyed**
-- `<div class="frame">` — Penpot's internal rich-text DOM, never a `<button>`
-
-Codegen reads STRUCTURED properties plus `shape.tokens`, and emits code that references
-tokens. That difference is the entire value.
-
-## Pipeline
+Only one thing needs Penpot: reading the design. Everything else is local Node.
 
 ```
-Penpot ──extract──▶ .penpot/ir.json ──emit──▶ css / dtcg / tailwind / tsx
-                          │
-                          ├──drift──▶ report (never writes)
-                          │
-code tokens ──plan──▶ .penpot/plan.json ──apply──▶ Penpot
+needs the live design                  runs anywhere
+---------------------                  -------------
+penpot-kit script helpers  ─┐
+penpot-kit script extract   ├─▶ execute_code ─▶ .penpot/ir.json ─┐
+penpot-kit script screens   │                   .penpot/screens.json
+penpot-kit script audit    ─┘                                    │
+                                                                 ▼
+                                          penpot-kit lint / emit / screens /
+                                          scaffold / drift / validate
 ```
 
-Codegen runs in **Node**, not through the model. Same IR in, same bytes out. Generating
-code by having the model write it costs tokens on every regeneration and drifts run to run.
+## Never use generateStyle for codegen
 
-## Extraction has a trap you must respect
-
-An INACTIVE token set reports the ACTIVE set's `resolvedValue`. Extracting all themes in
-one pass therefore produces a silently WRONG dark theme — plausible-looking CSS that is
-simply incorrect.
-
-`scripts/penpot-extract.js` handles this by activating each theme in turn, collecting
-resolved values per theme, then restoring the original. Never bypass that loop.
-
-## Layering in generated CSS
-
-Only the **alias layer** is re-declared per theme. Global and Semantic tokens keep their
-authored `{reference}` and emit as `var()`:
+`penpot.generateStyle` is an inspection tool. For a button it emits:
 
 ```css
---button-primary-background-rest: var(--color-brand-background-rest);   /* semantic: chain kept */
-:root[data-theme="dark"] { --color-brand-background-rest: #115EA3; }    /* alias: switch point */
+.primary-8c8ed4da172a { position: absolute; left: 109px; background: #0f6cbdFF; }
 ```
 
-Semantic tokens therefore re-theme automatically. Flattening them to hex would work
-visually and destroy the architecture — a rebrand would stop being a one-token edit.
+Canvas coordinates, hash-suffixed class names, and — fatally — **the token binding is
+destroyed**. Codegen reads structured properties plus `shape.tokens` instead.
 
-## Variant axes are the component API
+## Extraction has traps
 
-A variant group with `Appearance` x `Size` is already a TypeScript signature. The emitter
-turns axes into prop unions directly; no inference required.
+**An INACTIVE token set reports the ACTIVE set's `resolvedValue`.** Extracting all themes
+in one pass yields a silently wrong dark theme. Activate each theme in turn, collect, then
+restore. The shipped extractor does this; never bypass the loop.
 
-Default prop values come from `.penpot/connect.json` if present, else the first value of
-each axis. The first value is often wrong (a `Size` axis usually wants Medium, not Small) —
-set defaults explicitly in `connect.json`.
+**Structure must come from every variant, not one.** A state axis usually restyles
+something INSIDE a component — a Field's border lives on its control, a Tablist's
+underline on its indicator. Capturing structure from one variant bakes that variant's
+appearance onto every descendant.
 
-## Commands
+**Look a variant up by ALL axes, not one.** A Switch with `State=On` has two variants
+(`Disabled=No` and `Yes`); matching on one axis returns whichever comes first.
 
-- `/penpot:codegen` — extract IR, emit code
-- `/penpot:drift` — compare design against generated code; exits non-zero when stale
-- `/penpot:push-tokens` — plan and apply token changes from code into Penpot
+## What the emitters guarantee
 
-## What does not round-trip
+- **Determinism.** Same IR in, same bytes out. This is what makes drift detection
+  meaningful — model-written CSS would differ every run and drift would fire on noise.
+- **The token chain survives.** Only the alias layer is re-declared per theme; Global and
+  Semantic keep their `{reference}` and emit as `var()`, so semantic tokens re-theme
+  automatically. Changing one Global token produces ONE drift finding, not twenty.
+- **Variant axes become the API.** `Appearance × Size` becomes a typed prop signature.
+  Axes valued `Yes/No`, `True/False` or `Off/On` become **boolean** props.
+- **Structure renders as structure.** Nested boxes become nested divs; a Nav is four rows,
+  not eight stacked spans.
+- **Per-variant descendant overrides.** Only the properties that differ are emitted:
+  `.field--error .field__control { border: ... }`.
 
-Components are reported as drift, never pushed from code. Code carries behaviour, a11y
-semantics, event handlers and state with no representation in the design; "syncing back"
-could only ever mean overwriting. Say so plainly rather than implying full symmetry.
+## Screens
 
-Alias-layer tokens are also refused on push: the same name exists in both Light and Dark
-sets, so a single flat token file cannot say which is meant. Edit those in Penpot, or
-split the token file per theme.
+A component is a DEFINITION; a screen is a USE. Screens live on pages prefixed `App /`
+and are extracted separately.
+
+An instance is recorded as **what it is**, not its rendered geometry:
+
+```
+{ component: "Button", props: { Appearance: "Primary" } }
+  ->  <Button appearance="primary">Sign in</Button>
+```
+
+So a screen follows its components automatically. Screens own layout; components own
+appearance.
+
+Build screens from real component **instances** in Penpot (`component.instance()`), not
+copies. Override copy inside the instance without detaching — the link survives.
+
+## Code to design
+
+Tokens only, via a reviewable plan. What is refused, and why:
+
+- **Components are never pushed.** Code carries behaviour, a11y and state with no
+  representation in the design; "syncing back" could only mean overwriting.
+- **Alias-layer tokens are skipped.** The same name exists in both theme sets, so a flat
+  file cannot say which is meant.
+- **Nothing is ever deleted.** Absence in one file is not evidence of intent.
+- **Icons are the exception** — pure geometry, no behaviour, so they import cleanly.
+
+## Consistency
+
+`penpot-kit lint` runs offline against the IR and derives its scales from the tokens
+themselves. It catches what the audit cannot: off-scale spacing/radius/type, font and
+line-height drift, unbound vs off-palette colour, axis naming drift, and
+**dangling-token** — a component bound to a token nothing declares, which CSS resolves to
+nothing and renders invisible with no error anywhere.
+
+Run it before generating. A design that lints clean generates predictably.
+
+## Verifying output
+
+Generating is not the same as working. Three checks, in order:
+
+1. `penpot-kit validate <outDir>` — rejects invalid identifiers and broken emits.
+2. `tsc --noEmit` — catches prop collisions with DOM attributes.
+3. **Render it.** `penpot-kit scaffold` builds a gallery that renders every component at
+   every axis value. Most defects in this pipeline have been invisible-rendering bugs —
+   an empty Badge, a zero-width Switch, a colourless Avatar — that compiled cleanly and
+   looked like success.
