@@ -78,6 +78,9 @@ RUNS LOCALLY (no Penpot connection needed)
                 Generate code from an extracted IR. Deterministic: same IR, same bytes.
   drift         --ir <file> --out <dir> [--baseline <file>] [--json]
                 Report divergence between design and generated code. Exits 1 when stale.
+  lint          --ir <file> [--config .penpot/lint.json] [--max-warnings N] [--json]
+                Check the design system for CONSISTENCY: off-scale spacing/radius/type,
+                unbound or off-palette colours, naming drift. Exits 1 on errors.
   push-tokens   --tokens <dtcg.json> --ir <file> [--out .penpot/plan.json] [--set Global]
                 Plan token changes from code back into the design. Writes a plan, applies nothing.
   plan-icons    --dir <svgDir> [--out .penpot/icons.json] [--page Icon] [--limit N]
@@ -270,6 +273,10 @@ switch (cmd) {
 
   case "drift":
     delegate("emit/drift.js", rest);
+    break;
+
+  case "lint":
+    delegate("emit/lint.js", rest);
     break;
 
   case "push-tokens":

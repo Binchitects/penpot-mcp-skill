@@ -29,6 +29,19 @@ values.push(G("teal-100", "color", "rgb(0, 117, 5)"));
  ["applist-icon-250",60],["applist-icon-300",72],["applist-icon-400",96]]
   .forEach(([k, v]) => values.push(G("size-" + k, "sizing", String(v))));
 
+// Type + motion + elevation scales, matching the live file. Without these the linter
+// cannot check typography at all -- it correctly skips any rule whose scale is undefined,
+// which once made a dirty fixture look clean.
+[11,12,14,16,18,20,22,24,28,32,36,45,57]
+  .forEach((n) => values.push(G("font-size-" + n, "fontSizes", String(n))));
+[["regular",400],["medium",500],["semibold",600],["bold",700]]
+  .forEach(([k, v]) => values.push(G("font-weight-" + k, "fontWeights", String(v))));
+[["tight","-0.5"],["normal","0"],["wide","0.5"]]
+  .forEach(([k, v]) => values.push(G("letter-spacing-" + k, "letterSpacing", v)));
+values.push(G("font-family-base", "fontFamilies", "Inter"));
+[["xsmall",4],["xxlarge",28],["full",9999]]
+  .forEach(([k, v]) => values.push(G("radius-" + k, "borderRadius", String(v))));
+
 const BRAND = { 10:"#061724", 20:"#082338", 30:"#0A2E4A", 40:"#0C3B5E", 50:"#0E4775",
   60:"#0F548C", 70:"#115EA3", 80:"#0F6CBD", 90:"#2886DE", 100:"#479EF5", 110:"#62ABF5",
   120:"#77B7F7", 130:"#96C6FA", 140:"#B4D6FA", 150:"#CFE4FA", 160:"#EBF3FC" };

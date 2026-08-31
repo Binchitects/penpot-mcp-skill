@@ -16,11 +16,32 @@ Code is one adapter among several.
 
 ### Any harness (Cursor, Cline, Codex, OpenHands, Continue, Zed, Copilot, a custom agent, CI…)
 
+Install straight from GitHub — no npm publish required:
+
 ```bash
-npm i -g penpot-kit          # or use npx penpot-kit
+npm i -g github:Binchitects/penpot-mcp-skill
+```
+
+Or per-project, without a global install:
+
+```bash
+npm i -D github:Binchitects/penpot-mcp-skill
+```
+
+Or run it once with no install at all:
+
+```bash
+npx github:Binchitects/penpot-mcp-skill doctor
+```
+
+Then set up your harness and verify:
+
+```bash
 penpot-kit rules --target all   # writes instruction files in each harness's own convention
 penpot-kit doctor               # self-check
 ```
+
+Zero dependencies, Node >= 18. Nothing else is pulled in.
 
 `rules` appends to existing files rather than clobbering them, and is idempotent.
 
