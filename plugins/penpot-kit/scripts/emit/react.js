@@ -62,6 +62,19 @@ function makeEmitReact(helpers) {
     const primaryText = textNodes.length ? textNodes[0].text : null;
     const multi = textNodes.length > 1;
 
+    // Slot prop names must be UNIQUE. A Nav is four rows of Glyph + Label, so the raw
+    // names repeat and the generated interface declared `label` four times:
+    //   error TS2300: Duplicate identifier 'label'
+    // Suffix repeats in document order: label, label2, label3...
+    const slotNames = (function () {
+      const seen = {};
+      return textNodes.map(function (t) {
+        const b = camel(t.name);
+        seen[b] = (seen[b] || 0) + 1;
+        return seen[b] === 1 ? b : b + seen[b];
+      });
+    })();
+
     // Semantic element: a Button must render a <button>, not a <div>.
     const isButton = /button$/i.test(comp.name);
     const el = isButton ? "button" : "div";
@@ -79,9 +92,9 @@ function makeEmitReact(helpers) {
     ).join("\n");
 
     const slotProps = multi
-      ? "\n" + textNodes.map((t) =>
+      ? "\n" + textNodes.map((t, i) =>
           "  /** \"" + t.name + "\" text slot from the design */\n" +
-          "  " + camel(t.name) + "?: ReactNode;").join("\n")
+          "  " + slotNames[i] + "?: ReactNode;").join("\n")
       : "";
 
     const defaults = axes.map(([axis, vals]) => {
@@ -98,16 +111,16 @@ function makeEmitReact(helpers) {
     ).join("\n");
 
     const destructure = multi
-      ? "{ " + defaults + ", " + textNodes.map((t) => camel(t.name)).join(", ") +
+      ? "{ " + defaults + ", " + slotNames.join(", ") +
         ", className, children, ...rest }"
       : "{ " + defaults + ", className, children, ...rest }";
 
     // Multi-part components expose each named text node as a slot prop, so callers fill
     // them instead of inheriting the designer's placeholder copy.
     const body = multi
-      ? textNodes.map((t) =>
-          "      <span className={" + JSON.stringify(base + "__" + kebab(t.name)) + "}>" +
-          "{" + camel(t.name) + " ?? " + JSON.stringify(t.text.characters) + "}</span>"
+      ? textNodes.map((t, i) =>
+          "      <span className={" + JSON.stringify(base + "__" + slotNames[i]) + "}>" +
+          "{" + slotNames[i] + " ?? " + JSON.stringify(t.text.characters) + "}</span>"
         ).join("\n")
       : (primaryText
           ? "      {children ?? " + JSON.stringify(primaryText.characters) + "}"
@@ -119,7 +132,7 @@ function makeEmitReact(helpers) {
     //   Interface 'CardProps' incorrectly extends 'HTMLAttributes<HTMLDivElement>'
     // Omit every name we generate, so the component's own API always wins.
     const ownProps = axes.map(([axis]) => camel(axis))
-      .concat(multi ? textNodes.map((t) => camel(t.name)) : []);
+      .concat(multi ? slotNames : []);
     const baseType = attrType + "<" + domType + ">";
     const extendsType = ownProps.length
       ? "Omit<" + baseType + ", " + ownProps.map((p) => JSON.stringify(p)).join(" | ") + ">"
@@ -236,8 +249,8 @@ function makeEmitReact(helpers) {
     css += "}\n";
 
     if (multi) {
-      textNodes.forEach((t) => {
-        css += "\n." + base + "__" + kebab(t.name) + " {\n" +
+      textNodes.forEach((t, i) => {
+        css += "\n." + base + "__" + slotNames[i] + " {\n" +
           "  font-size: " + t.text.fontSize + "px;\n" +
           "  font-weight: " + t.text.fontWeight + ";\n" +
           "  color: " + tokenOf(t.text.color) + ";\n}\n";

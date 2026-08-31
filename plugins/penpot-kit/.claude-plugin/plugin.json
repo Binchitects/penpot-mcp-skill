@@ -1,6 +1,6 @@
 {
   "name": "penpot-kit",
-  "version": "3.2.0",
+  "version": "3.3.0",
   "description": "Bidirectional Penpot design-to-code and code-to-design. Corrected Plugin API reference, deterministic codegen (CSS vars, W3C DTCG, Tailwind, React+TS), drift detection, and a cached design-system manifest.",
   "author": {
     "name": "Binchitects",

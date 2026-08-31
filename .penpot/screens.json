@@ -1,0 +1,1938 @@
+{
+  "version": 1,
+  "file": "Design System",
+  "prefix": "App /",
+  "screens": [
+    {
+      "name": "Sign in",
+      "page": "App / Sign in",
+      "route": "/sign-in",
+      "box": {
+        "width": 440,
+        "height": 549,
+        "fill": {
+          "t": "color.surface.base",
+          "v": "#ffffff"
+        }
+      },
+      "layout": {
+        "kind": "flex",
+        "dir": "column",
+        "alignItems": "stretch",
+        "justifyContent": "start",
+        "rowGap": 24,
+        "columnGap": 24,
+        "padding": {
+          "top": 48,
+          "right": 40,
+          "bottom": 48,
+          "left": 40
+        },
+        "sizing": {
+          "h": "fix",
+          "v": "auto"
+        }
+      },
+      "uses": {
+        "Field": 2,
+        "Switch": 1,
+        "Button": 1,
+        "MessageBar": 1
+      },
+      "root": {
+        "kind": "box",
+        "name": "Sign in",
+        "box": {
+          "fill": {
+            "t": "color.surface.base",
+            "v": "#ffffff"
+          },
+          "stroke": null,
+          "radius": {
+            "v": 0
+          }
+        },
+        "layout": {
+          "kind": "flex",
+          "dir": "column",
+          "alignItems": "stretch",
+          "justifyContent": "start",
+          "rowGap": 24,
+          "columnGap": 24,
+          "padding": {
+            "top": 48,
+            "right": 40,
+            "bottom": 48,
+            "left": 40
+          },
+          "sizing": {
+            "h": "fix",
+            "v": "auto"
+          }
+        },
+        "children": [
+          {
+            "kind": "box",
+            "name": "Header",
+            "box": {
+              "fill": null,
+              "stroke": null,
+              "radius": {
+                "v": 0
+              }
+            },
+            "layout": {
+              "kind": "flex",
+              "dir": "column",
+              "alignItems": "start",
+              "justifyContent": "start",
+              "rowGap": 6,
+              "columnGap": 6,
+              "padding": {
+                "top": 0,
+                "right": 0,
+                "bottom": 0,
+                "left": 0
+              },
+              "sizing": {
+                "h": "fix",
+                "v": "auto"
+              }
+            },
+            "children": [
+              {
+                "kind": "text",
+                "name": "Title",
+                "text": {
+                  "characters": "Sign in to Taskflow",
+                  "fontSize": "28",
+                  "fontWeight": "600",
+                  "color": {
+                    "t": "color.on.surface.base",
+                    "v": "#242424"
+                  }
+                }
+              },
+              {
+                "kind": "text",
+                "name": "Subtitle",
+                "text": {
+                  "characters": "Track work without the ceremony.",
+                  "fontSize": "14",
+                  "fontWeight": "400",
+                  "color": {
+                    "t": "color.on.surface.variant",
+                    "v": "#616161"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "kind": "instance",
+            "name": "EmailField",
+            "component": "Field",
+            "props": {
+              "State": "Rest"
+            },
+            "texts": [
+              {
+                "name": "FieldLabel",
+                "characters": "Email"
+              },
+              {
+                "name": "Value",
+                "characters": "ali@binchitects.com"
+              },
+              {
+                "name": "Message",
+                "characters": "We never share this."
+              }
+            ]
+          },
+          {
+            "kind": "instance",
+            "name": "PasswordField",
+            "component": "Field",
+            "props": {
+              "State": "Rest"
+            },
+            "texts": [
+              {
+                "name": "FieldLabel",
+                "characters": "Password"
+              },
+              {
+                "name": "Value",
+                "characters": "••••••••••"
+              },
+              {
+                "name": "Message",
+                "characters": "At least 12 characters."
+              }
+            ]
+          },
+          {
+            "kind": "box",
+            "name": "RememberRow",
+            "box": {
+              "fill": null,
+              "stroke": null,
+              "radius": {
+                "v": 0
+              }
+            },
+            "layout": {
+              "kind": "flex",
+              "dir": "row",
+              "alignItems": "center",
+              "justifyContent": "start",
+              "rowGap": 10,
+              "columnGap": 10,
+              "padding": {
+                "top": 0,
+                "right": 0,
+                "bottom": 0,
+                "left": 0
+              },
+              "sizing": {
+                "h": "fix",
+                "v": "fix"
+              }
+            },
+            "children": [
+              {
+                "kind": "instance",
+                "name": "RememberSwitch",
+                "component": "Switch",
+                "props": {
+                  "State": "Off",
+                  "Disabled": "No"
+                },
+                "texts": []
+              },
+              {
+                "kind": "text",
+                "name": "RememberLabel",
+                "text": {
+                  "characters": "Keep me signed in",
+                  "fontSize": "14",
+                  "fontWeight": "400",
+                  "color": {
+                    "t": "color.on.surface.base",
+                    "v": "#242424"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "kind": "instance",
+            "name": "SubmitButton",
+            "component": "Button",
+            "props": {
+              "Appearance": "Primary",
+              "Size": "Large"
+            },
+            "texts": [
+              {
+                "name": "Label",
+                "characters": "Sign in"
+              }
+            ]
+          },
+          {
+            "kind": "instance",
+            "name": "AuthError",
+            "component": "MessageBar",
+            "props": {
+              "Intent": "Error"
+            },
+            "texts": [
+              {
+                "name": "Title",
+                "characters": "Incorrect password"
+              },
+              {
+                "name": "Body",
+                "characters": "Check your details and try again."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "Tasks",
+      "page": "App / Tasks",
+      "route": "/tasks",
+      "box": {
+        "width": 1200,
+        "height": 760,
+        "fill": {
+          "t": "color.surface.variant",
+          "v": "#f5f5f5"
+        }
+      },
+      "layout": {
+        "kind": "flex",
+        "dir": "row",
+        "alignItems": "stretch",
+        "justifyContent": "start",
+        "rowGap": 0,
+        "columnGap": 0,
+        "padding": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "sizing": {
+          "h": "fix",
+          "v": "fix"
+        }
+      },
+      "uses": {
+        "Avatar": 2,
+        "Nav": 1,
+        "Searchbox": 1,
+        "Button": 1,
+        "Tablist": 1,
+        "Switch": 4,
+        "Badge": 4
+      },
+      "root": {
+        "kind": "box",
+        "name": "Tasks",
+        "box": {
+          "fill": {
+            "t": "color.surface.variant",
+            "v": "#f5f5f5"
+          },
+          "stroke": null,
+          "radius": {
+            "v": 0
+          }
+        },
+        "layout": {
+          "kind": "flex",
+          "dir": "row",
+          "alignItems": "stretch",
+          "justifyContent": "start",
+          "rowGap": 0,
+          "columnGap": 0,
+          "padding": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          },
+          "sizing": {
+            "h": "fix",
+            "v": "fix"
+          }
+        },
+        "children": [
+          {
+            "kind": "box",
+            "name": "Sidebar",
+            "box": {
+              "fill": {
+                "t": "color.surface.base",
+                "v": "#ffffff"
+              },
+              "stroke": null,
+              "radius": {
+                "v": 0
+              }
+            },
+            "layout": {
+              "kind": "flex",
+              "dir": "column",
+              "alignItems": "stretch",
+              "justifyContent": "start",
+              "rowGap": 20,
+              "columnGap": 20,
+              "padding": {
+                "top": 24,
+                "right": 20,
+                "bottom": 24,
+                "left": 20
+              },
+              "sizing": {
+                "h": "fix",
+                "v": "fix"
+              }
+            },
+            "children": [
+              {
+                "kind": "box",
+                "name": "Brand",
+                "box": {
+                  "fill": null,
+                  "stroke": null,
+                  "radius": {
+                    "v": 0
+                  }
+                },
+                "layout": {
+                  "kind": "flex",
+                  "dir": "row",
+                  "alignItems": "center",
+                  "justifyContent": "start",
+                  "rowGap": 10,
+                  "columnGap": 10,
+                  "padding": {
+                    "top": 0,
+                    "right": 0,
+                    "bottom": 0,
+                    "left": 0
+                  },
+                  "sizing": {
+                    "h": "fix",
+                    "v": "fix"
+                  }
+                },
+                "children": [
+                  {
+                    "kind": "instance",
+                    "name": "BrandMark",
+                    "component": "Avatar",
+                    "props": {
+                      "Size": "Small"
+                    },
+                    "texts": [
+                      {
+                        "name": "Label",
+                        "characters": "AG"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "text",
+                    "name": "BrandName",
+                    "text": {
+                      "characters": "Taskflow",
+                      "fontSize": "18",
+                      "fontWeight": "600",
+                      "color": {
+                        "t": "color.on.surface.base",
+                        "v": "#242424"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "kind": "instance",
+                "name": "SideNav",
+                "component": "Nav",
+                "props": {
+                  "State": "Selected"
+                },
+                "texts": [
+                  {
+                    "name": "Glyph",
+                    "characters": "▪"
+                  },
+                  {
+                    "name": "Label",
+                    "characters": "Dashboard"
+                  },
+                  {
+                    "name": "Glyph",
+                    "characters": "▪"
+                  },
+                  {
+                    "name": "Label",
+                    "characters": "My tasks"
+                  },
+                  {
+                    "name": "Glyph",
+                    "characters": "▪"
+                  },
+                  {
+                    "name": "Label",
+                    "characters": "Projects"
+                  },
+                  {
+                    "name": "Glyph",
+                    "characters": "▪"
+                  },
+                  {
+                    "name": "Label",
+                    "characters": "Archive"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "box",
+            "name": "Main",
+            "box": {
+              "fill": null,
+              "stroke": null,
+              "radius": {
+                "v": 0
+              }
+            },
+            "layout": {
+              "kind": "flex",
+              "dir": "column",
+              "alignItems": "stretch",
+              "justifyContent": "start",
+              "rowGap": 20,
+              "columnGap": 20,
+              "padding": {
+                "top": 28,
+                "right": 32,
+                "bottom": 28,
+                "left": 32
+              },
+              "sizing": {
+                "h": "fix",
+                "v": "fix"
+              }
+            },
+            "children": [
+              {
+                "kind": "box",
+                "name": "Topbar",
+                "box": {
+                  "fill": null,
+                  "stroke": null,
+                  "radius": {
+                    "v": 0
+                  }
+                },
+                "layout": {
+                  "kind": "flex",
+                  "dir": "row",
+                  "alignItems": "center",
+                  "justifyContent": "space-between",
+                  "rowGap": 12,
+                  "columnGap": 12,
+                  "padding": {
+                    "top": 0,
+                    "right": 0,
+                    "bottom": 0,
+                    "left": 0
+                  },
+                  "sizing": {
+                    "h": "fix",
+                    "v": "fix"
+                  }
+                },
+                "children": [
+                  {
+                    "kind": "instance",
+                    "name": "Search",
+                    "component": "Searchbox",
+                    "props": {
+                      "State": "Rest"
+                    },
+                    "texts": [
+                      {
+                        "name": "Icon",
+                        "characters": "⌕"
+                      },
+                      {
+                        "name": "Placeholder",
+                        "characters": "Search tasks"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "box",
+                    "name": "Actions",
+                    "box": {
+                      "fill": null,
+                      "stroke": null,
+                      "radius": {
+                        "v": 0
+                      }
+                    },
+                    "layout": {
+                      "kind": "flex",
+                      "dir": "row",
+                      "alignItems": "center",
+                      "justifyContent": "end",
+                      "rowGap": 12,
+                      "columnGap": 12,
+                      "padding": {
+                        "top": 0,
+                        "right": 0,
+                        "bottom": 0,
+                        "left": 0
+                      },
+                      "sizing": {
+                        "h": "fix",
+                        "v": "fix"
+                      }
+                    },
+                    "children": [
+                      {
+                        "kind": "instance",
+                        "name": "NewTask",
+                        "component": "Button",
+                        "props": {
+                          "Appearance": "Primary",
+                          "Size": "Medium"
+                        },
+                        "texts": [
+                          {
+                            "name": "Label",
+                            "characters": "New task"
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "instance",
+                        "name": "Me",
+                        "component": "Avatar",
+                        "props": {
+                          "Size": "Medium"
+                        },
+                        "texts": [
+                          {
+                            "name": "Label",
+                            "characters": "AG"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "text",
+                "name": "PageTitle",
+                "text": {
+                  "characters": "My tasks",
+                  "fontSize": "28",
+                  "fontWeight": "600",
+                  "color": {
+                    "t": "color.on.surface.base",
+                    "v": "#242424"
+                  }
+                }
+              },
+              {
+                "kind": "instance",
+                "name": "Filters",
+                "component": "Tablist",
+                "props": {
+                  "State": "Selected"
+                },
+                "texts": [
+                  {
+                    "name": "Label",
+                    "characters": "Done"
+                  },
+                  {
+                    "name": "Label",
+                    "characters": "Due soon"
+                  },
+                  {
+                    "name": "Label",
+                    "characters": "All"
+                  }
+                ]
+              },
+              {
+                "kind": "box",
+                "name": "TaskList",
+                "box": {
+                  "fill": null,
+                  "stroke": null,
+                  "radius": {
+                    "v": 0
+                  }
+                },
+                "layout": {
+                  "kind": "flex",
+                  "dir": "column",
+                  "alignItems": "stretch",
+                  "justifyContent": "start",
+                  "rowGap": 12,
+                  "columnGap": 12,
+                  "padding": {
+                    "top": 0,
+                    "right": 0,
+                    "bottom": 0,
+                    "left": 0
+                  },
+                  "sizing": {
+                    "h": "fix",
+                    "v": "auto"
+                  }
+                },
+                "children": [
+                  {
+                    "kind": "box",
+                    "name": "Task1",
+                    "box": {
+                      "fill": {
+                        "t": "color.surface.base",
+                        "v": "#ffffff"
+                      },
+                      "stroke": {
+                        "color": {
+                          "t": "color.outline.variant",
+                          "v": "#cac4d0"
+                        },
+                        "width": {
+                          "v": 1
+                        }
+                      },
+                      "radius": {
+                        "t": "radius-medium",
+                        "v": 4
+                      }
+                    },
+                    "layout": {
+                      "kind": "flex",
+                      "dir": "row",
+                      "alignItems": "center",
+                      "justifyContent": "start",
+                      "rowGap": 14,
+                      "columnGap": 14,
+                      "padding": {
+                        "top": 0,
+                        "right": 16,
+                        "bottom": 0,
+                        "left": 16
+                      },
+                      "sizing": {
+                        "h": "fix",
+                        "v": "fix"
+                      }
+                    },
+                    "children": [
+                      {
+                        "kind": "instance",
+                        "name": "Done",
+                        "component": "Switch",
+                        "props": {
+                          "State": "On",
+                          "Disabled": "No"
+                        },
+                        "texts": []
+                      },
+                      {
+                        "kind": "box",
+                        "name": "Text",
+                        "box": {
+                          "fill": null,
+                          "stroke": null,
+                          "radius": {
+                            "v": 0
+                          }
+                        },
+                        "layout": {
+                          "kind": "flex",
+                          "dir": "column",
+                          "alignItems": "start",
+                          "justifyContent": "center",
+                          "rowGap": 2,
+                          "columnGap": 2,
+                          "padding": {
+                            "top": 0,
+                            "right": 0,
+                            "bottom": 0,
+                            "left": 0
+                          },
+                          "sizing": {
+                            "h": "fix",
+                            "v": "fix"
+                          }
+                        },
+                        "children": [
+                          {
+                            "kind": "text",
+                            "name": "TaskTitle",
+                            "text": {
+                              "characters": "Ship the token pipeline",
+                              "fontSize": "15",
+                              "fontWeight": "600",
+                              "color": {
+                                "t": "color.on.surface.base",
+                                "v": "#242424"
+                              }
+                            }
+                          },
+                          {
+                            "kind": "text",
+                            "name": "TaskMeta",
+                            "text": {
+                              "characters": "Design system · due Friday",
+                              "fontSize": "12",
+                              "fontWeight": "400",
+                              "color": {
+                                "t": "color.on.surface.variant",
+                                "v": "#616161"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "instance",
+                        "name": "Status",
+                        "component": "Badge",
+                        "props": {
+                          "Appearance": "Brand",
+                          "Size": "Medium"
+                        },
+                        "texts": [
+                          {
+                            "name": "Label",
+                            "characters": "99"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "box",
+                    "name": "Task2",
+                    "box": {
+                      "fill": {
+                        "t": "color.surface.base",
+                        "v": "#ffffff"
+                      },
+                      "stroke": {
+                        "color": {
+                          "t": "color.outline.variant",
+                          "v": "#cac4d0"
+                        },
+                        "width": {
+                          "v": 1
+                        }
+                      },
+                      "radius": {
+                        "t": "radius-medium",
+                        "v": 4
+                      }
+                    },
+                    "layout": {
+                      "kind": "flex",
+                      "dir": "row",
+                      "alignItems": "center",
+                      "justifyContent": "start",
+                      "rowGap": 14,
+                      "columnGap": 14,
+                      "padding": {
+                        "top": 0,
+                        "right": 16,
+                        "bottom": 0,
+                        "left": 16
+                      },
+                      "sizing": {
+                        "h": "fix",
+                        "v": "fix"
+                      }
+                    },
+                    "children": [
+                      {
+                        "kind": "instance",
+                        "name": "Done",
+                        "component": "Switch",
+                        "props": {
+                          "State": "Off",
+                          "Disabled": "No"
+                        },
+                        "texts": []
+                      },
+                      {
+                        "kind": "box",
+                        "name": "Text",
+                        "box": {
+                          "fill": null,
+                          "stroke": null,
+                          "radius": {
+                            "v": 0
+                          }
+                        },
+                        "layout": {
+                          "kind": "flex",
+                          "dir": "column",
+                          "alignItems": "start",
+                          "justifyContent": "center",
+                          "rowGap": 2,
+                          "columnGap": 2,
+                          "padding": {
+                            "top": 0,
+                            "right": 0,
+                            "bottom": 0,
+                            "left": 0
+                          },
+                          "sizing": {
+                            "h": "fix",
+                            "v": "fix"
+                          }
+                        },
+                        "children": [
+                          {
+                            "kind": "text",
+                            "name": "TaskTitle",
+                            "text": {
+                              "characters": "Fix dark-theme extraction",
+                              "fontSize": "15",
+                              "fontWeight": "600",
+                              "color": {
+                                "t": "color.on.surface.base",
+                                "v": "#242424"
+                              }
+                            }
+                          },
+                          {
+                            "kind": "text",
+                            "name": "TaskMeta",
+                            "text": {
+                              "characters": "Engineering · due Friday",
+                              "fontSize": "12",
+                              "fontWeight": "400",
+                              "color": {
+                                "t": "color.on.surface.variant",
+                                "v": "#616161"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "instance",
+                        "name": "Status",
+                        "component": "Badge",
+                        "props": {
+                          "Appearance": "Danger",
+                          "Size": "Medium"
+                        },
+                        "texts": [
+                          {
+                            "name": "Label",
+                            "characters": "99"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "box",
+                    "name": "Task3",
+                    "box": {
+                      "fill": {
+                        "t": "color.surface.base",
+                        "v": "#ffffff"
+                      },
+                      "stroke": {
+                        "color": {
+                          "t": "color.outline.variant",
+                          "v": "#cac4d0"
+                        },
+                        "width": {
+                          "v": 1
+                        }
+                      },
+                      "radius": {
+                        "t": "radius-medium",
+                        "v": 4
+                      }
+                    },
+                    "layout": {
+                      "kind": "flex",
+                      "dir": "row",
+                      "alignItems": "center",
+                      "justifyContent": "start",
+                      "rowGap": 14,
+                      "columnGap": 14,
+                      "padding": {
+                        "top": 0,
+                        "right": 16,
+                        "bottom": 0,
+                        "left": 16
+                      },
+                      "sizing": {
+                        "h": "fix",
+                        "v": "fix"
+                      }
+                    },
+                    "children": [
+                      {
+                        "kind": "instance",
+                        "name": "Done",
+                        "component": "Switch",
+                        "props": {
+                          "State": "Off",
+                          "Disabled": "No"
+                        },
+                        "texts": []
+                      },
+                      {
+                        "kind": "box",
+                        "name": "Text",
+                        "box": {
+                          "fill": null,
+                          "stroke": null,
+                          "radius": {
+                            "v": 0
+                          }
+                        },
+                        "layout": {
+                          "kind": "flex",
+                          "dir": "column",
+                          "alignItems": "start",
+                          "justifyContent": "center",
+                          "rowGap": 2,
+                          "columnGap": 2,
+                          "padding": {
+                            "top": 0,
+                            "right": 0,
+                            "bottom": 0,
+                            "left": 0
+                          },
+                          "sizing": {
+                            "h": "fix",
+                            "v": "fix"
+                          }
+                        },
+                        "children": [
+                          {
+                            "kind": "text",
+                            "name": "TaskTitle",
+                            "text": {
+                              "characters": "Write the handoff guide",
+                              "fontSize": "15",
+                              "fontWeight": "600",
+                              "color": {
+                                "t": "color.on.surface.base",
+                                "v": "#242424"
+                              }
+                            }
+                          },
+                          {
+                            "kind": "text",
+                            "name": "TaskMeta",
+                            "text": {
+                              "characters": "Docs · due Friday",
+                              "fontSize": "12",
+                              "fontWeight": "400",
+                              "color": {
+                                "t": "color.on.surface.variant",
+                                "v": "#616161"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "instance",
+                        "name": "Status",
+                        "component": "Badge",
+                        "props": {
+                          "Appearance": "Warning",
+                          "Size": "Medium"
+                        },
+                        "texts": [
+                          {
+                            "name": "Label",
+                            "characters": "99"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "box",
+                    "name": "Task4",
+                    "box": {
+                      "fill": {
+                        "t": "color.surface.base",
+                        "v": "#ffffff"
+                      },
+                      "stroke": {
+                        "color": {
+                          "t": "color.outline.variant",
+                          "v": "#cac4d0"
+                        },
+                        "width": {
+                          "v": 1
+                        }
+                      },
+                      "radius": {
+                        "t": "radius-medium",
+                        "v": 4
+                      }
+                    },
+                    "layout": {
+                      "kind": "flex",
+                      "dir": "row",
+                      "alignItems": "center",
+                      "justifyContent": "start",
+                      "rowGap": 14,
+                      "columnGap": 14,
+                      "padding": {
+                        "top": 0,
+                        "right": 16,
+                        "bottom": 0,
+                        "left": 16
+                      },
+                      "sizing": {
+                        "h": "fix",
+                        "v": "fix"
+                      }
+                    },
+                    "children": [
+                      {
+                        "kind": "instance",
+                        "name": "Done",
+                        "component": "Switch",
+                        "props": {
+                          "State": "Off",
+                          "Disabled": "No"
+                        },
+                        "texts": []
+                      },
+                      {
+                        "kind": "box",
+                        "name": "Text",
+                        "box": {
+                          "fill": null,
+                          "stroke": null,
+                          "radius": {
+                            "v": 0
+                          }
+                        },
+                        "layout": {
+                          "kind": "flex",
+                          "dir": "column",
+                          "alignItems": "start",
+                          "justifyContent": "center",
+                          "rowGap": 2,
+                          "columnGap": 2,
+                          "padding": {
+                            "top": 0,
+                            "right": 0,
+                            "bottom": 0,
+                            "left": 0
+                          },
+                          "sizing": {
+                            "h": "fix",
+                            "v": "fix"
+                          }
+                        },
+                        "children": [
+                          {
+                            "kind": "text",
+                            "name": "TaskTitle",
+                            "text": {
+                              "characters": "Audit component contrast",
+                              "fontSize": "15",
+                              "fontWeight": "600",
+                              "color": {
+                                "t": "color.on.surface.base",
+                                "v": "#242424"
+                              }
+                            }
+                          },
+                          {
+                            "kind": "text",
+                            "name": "TaskMeta",
+                            "text": {
+                              "characters": "Accessibility · due Friday",
+                              "fontSize": "12",
+                              "fontWeight": "400",
+                              "color": {
+                                "t": "color.on.surface.variant",
+                                "v": "#616161"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "instance",
+                        "name": "Status",
+                        "component": "Badge",
+                        "props": {
+                          "Appearance": "Success",
+                          "Size": "Medium"
+                        },
+                        "texts": [
+                          {
+                            "name": "Label",
+                            "characters": "99"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "Task detail",
+      "page": "App / Task detail",
+      "route": "/task-detail",
+      "box": {
+        "width": 800,
+        "height": 538,
+        "fill": {
+          "t": "color.surface.base",
+          "v": "#ffffff"
+        }
+      },
+      "layout": {
+        "kind": "flex",
+        "dir": "column",
+        "alignItems": "stretch",
+        "justifyContent": "start",
+        "rowGap": 22,
+        "columnGap": 22,
+        "padding": {
+          "top": 36,
+          "right": 40,
+          "bottom": 36,
+          "left": 40
+        },
+        "sizing": {
+          "h": "fix",
+          "v": "auto"
+        }
+      },
+      "uses": {
+        "Breadcrumb": 1,
+        "Badge": 1,
+        "Avatar": 1,
+        "Textarea": 1,
+        "Select": 1,
+        "Field": 1,
+        "Button": 2
+      },
+      "root": {
+        "kind": "box",
+        "name": "Task detail",
+        "box": {
+          "fill": {
+            "t": "color.surface.base",
+            "v": "#ffffff"
+          },
+          "stroke": null,
+          "radius": {
+            "v": 0
+          }
+        },
+        "layout": {
+          "kind": "flex",
+          "dir": "column",
+          "alignItems": "stretch",
+          "justifyContent": "start",
+          "rowGap": 22,
+          "columnGap": 22,
+          "padding": {
+            "top": 36,
+            "right": 40,
+            "bottom": 36,
+            "left": 40
+          },
+          "sizing": {
+            "h": "fix",
+            "v": "auto"
+          }
+        },
+        "children": [
+          {
+            "kind": "instance",
+            "name": "Crumbs",
+            "component": "Breadcrumb",
+            "props": {
+              "Size": "Medium"
+            },
+            "texts": [
+              {
+                "name": "Item1",
+                "characters": "Projects"
+              },
+              {
+                "name": "Sep1",
+                "characters": "/"
+              },
+              {
+                "name": "Item2",
+                "characters": "Design system"
+              },
+              {
+                "name": "Sep2",
+                "characters": "/"
+              },
+              {
+                "name": "Current",
+                "characters": "Ship the token pipeline"
+              }
+            ]
+          },
+          {
+            "kind": "text",
+            "name": "Title",
+            "text": {
+              "characters": "Ship the token pipeline",
+              "fontSize": "28",
+              "fontWeight": "600",
+              "color": {
+                "t": "color.on.surface.base",
+                "v": "#242424"
+              }
+            }
+          },
+          {
+            "kind": "box",
+            "name": "Meta",
+            "box": {
+              "fill": null,
+              "stroke": null,
+              "radius": {
+                "v": 0
+              }
+            },
+            "layout": {
+              "kind": "flex",
+              "dir": "row",
+              "alignItems": "center",
+              "justifyContent": "start",
+              "rowGap": 10,
+              "columnGap": 10,
+              "padding": {
+                "top": 0,
+                "right": 0,
+                "bottom": 0,
+                "left": 0
+              },
+              "sizing": {
+                "h": "fix",
+                "v": "fix"
+              }
+            },
+            "children": [
+              {
+                "kind": "instance",
+                "name": "Status",
+                "component": "Badge",
+                "props": {
+                  "Appearance": "Brand",
+                  "Size": "Medium"
+                },
+                "texts": [
+                  {
+                    "name": "Label",
+                    "characters": "In progress"
+                  }
+                ]
+              },
+              {
+                "kind": "instance",
+                "name": "Assignee",
+                "component": "Avatar",
+                "props": {
+                  "Size": "Small"
+                },
+                "texts": [
+                  {
+                    "name": "Label",
+                    "characters": "AG"
+                  }
+                ]
+              },
+              {
+                "kind": "text",
+                "name": "MetaText",
+                "text": {
+                  "characters": "Assigned to Ali · due Friday",
+                  "fontSize": "13",
+                  "fontWeight": "400",
+                  "color": {
+                    "t": "color.on.surface.variant",
+                    "v": "#616161"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "kind": "instance",
+            "name": "Description",
+            "component": "Textarea",
+            "props": {
+              "State": "Rest"
+            },
+            "texts": [
+              {
+                "name": "Placeholder",
+                "characters": "Describe what done looks like…"
+              }
+            ]
+          },
+          {
+            "kind": "instance",
+            "name": "Project",
+            "component": "Select",
+            "props": {
+              "State": "Rest"
+            },
+            "texts": [
+              {
+                "name": "Value",
+                "characters": "Design system"
+              },
+              {
+                "name": "Chevron",
+                "characters": "⌄"
+              }
+            ]
+          },
+          {
+            "kind": "instance",
+            "name": "Estimate",
+            "component": "Field",
+            "props": {
+              "State": "Rest"
+            },
+            "texts": [
+              {
+                "name": "FieldLabel",
+                "characters": "Estimate"
+              },
+              {
+                "name": "Value",
+                "characters": "3 days"
+              },
+              {
+                "name": "Message",
+                "characters": "Rough is fine."
+              }
+            ]
+          },
+          {
+            "kind": "box",
+            "name": "Actions",
+            "box": {
+              "fill": null,
+              "stroke": null,
+              "radius": {
+                "v": 0
+              }
+            },
+            "layout": {
+              "kind": "flex",
+              "dir": "row",
+              "alignItems": "center",
+              "justifyContent": "end",
+              "rowGap": 12,
+              "columnGap": 12,
+              "padding": {
+                "top": 0,
+                "right": 0,
+                "bottom": 0,
+                "left": 0
+              },
+              "sizing": {
+                "h": "fix",
+                "v": "fix"
+              }
+            },
+            "children": [
+              {
+                "kind": "instance",
+                "name": "CancelBtn",
+                "component": "Button",
+                "props": {
+                  "Appearance": "Subtle",
+                  "Size": "Medium"
+                },
+                "texts": [
+                  {
+                    "name": "Label",
+                    "characters": "Cancel"
+                  }
+                ]
+              },
+              {
+                "kind": "instance",
+                "name": "SaveBtn",
+                "component": "Button",
+                "props": {
+                  "Appearance": "Primary",
+                  "Size": "Medium"
+                },
+                "texts": [
+                  {
+                    "name": "Label",
+                    "characters": "Save changes"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "Settings",
+      "page": "App / Settings",
+      "route": "/settings",
+      "box": {
+        "width": 800,
+        "height": 486,
+        "fill": {
+          "t": "color.surface.base",
+          "v": "#ffffff"
+        }
+      },
+      "layout": {
+        "kind": "flex",
+        "dir": "column",
+        "alignItems": "stretch",
+        "justifyContent": "start",
+        "rowGap": 20,
+        "columnGap": 20,
+        "padding": {
+          "top": 36,
+          "right": 40,
+          "bottom": 36,
+          "left": 40
+        },
+        "sizing": {
+          "h": "fix",
+          "v": "auto"
+        }
+      },
+      "uses": {
+        "Tablist": 1,
+        "Switch": 3,
+        "MessageBar": 1
+      },
+      "root": {
+        "kind": "box",
+        "name": "Settings",
+        "box": {
+          "fill": {
+            "t": "color.surface.base",
+            "v": "#ffffff"
+          },
+          "stroke": null,
+          "radius": {
+            "v": 0
+          }
+        },
+        "layout": {
+          "kind": "flex",
+          "dir": "column",
+          "alignItems": "stretch",
+          "justifyContent": "start",
+          "rowGap": 20,
+          "columnGap": 20,
+          "padding": {
+            "top": 36,
+            "right": 40,
+            "bottom": 36,
+            "left": 40
+          },
+          "sizing": {
+            "h": "fix",
+            "v": "auto"
+          }
+        },
+        "children": [
+          {
+            "kind": "text",
+            "name": "Title",
+            "text": {
+              "characters": "Settings",
+              "fontSize": "28",
+              "fontWeight": "600",
+              "color": {
+                "t": "color.on.surface.base",
+                "v": "#242424"
+              }
+            }
+          },
+          {
+            "kind": "instance",
+            "name": "SettingsTabs",
+            "component": "Tablist",
+            "props": {
+              "State": "Selected"
+            },
+            "texts": [
+              {
+                "name": "Label",
+                "characters": "Account"
+              },
+              {
+                "name": "Label",
+                "characters": "Notifications"
+              },
+              {
+                "name": "Label",
+                "characters": "Appearance"
+              }
+            ]
+          },
+          {
+            "kind": "box",
+            "name": "Row1",
+            "box": {
+              "fill": {
+                "t": "color.surface.base",
+                "v": "#ffffff"
+              },
+              "stroke": {
+                "color": {
+                  "t": "color.outline.variant",
+                  "v": "#cac4d0"
+                },
+                "width": {
+                  "v": 1
+                }
+              },
+              "radius": {
+                "t": "radius-medium",
+                "v": 4
+              }
+            },
+            "layout": {
+              "kind": "flex",
+              "dir": "row",
+              "alignItems": "center",
+              "justifyContent": "space-between",
+              "rowGap": 16,
+              "columnGap": 16,
+              "padding": {
+                "top": 0,
+                "right": 16,
+                "bottom": 0,
+                "left": 16
+              },
+              "sizing": {
+                "h": "fix",
+                "v": "fix"
+              }
+            },
+            "children": [
+              {
+                "kind": "box",
+                "name": "Text",
+                "box": {
+                  "fill": null,
+                  "stroke": null,
+                  "radius": {
+                    "v": 0
+                  }
+                },
+                "layout": {
+                  "kind": "flex",
+                  "dir": "column",
+                  "alignItems": "start",
+                  "justifyContent": "center",
+                  "rowGap": 2,
+                  "columnGap": 2,
+                  "padding": {
+                    "top": 0,
+                    "right": 0,
+                    "bottom": 0,
+                    "left": 0
+                  },
+                  "sizing": {
+                    "h": "fix",
+                    "v": "fix"
+                  }
+                },
+                "children": [
+                  {
+                    "kind": "text",
+                    "name": "RowTitle",
+                    "text": {
+                      "characters": "Email notifications",
+                      "fontSize": "15",
+                      "fontWeight": "600",
+                      "color": {
+                        "t": "color.on.surface.base",
+                        "v": "#242424"
+                      }
+                    }
+                  },
+                  {
+                    "kind": "text",
+                    "name": "RowSub",
+                    "text": {
+                      "characters": "Get a digest when a task is due",
+                      "fontSize": "12",
+                      "fontWeight": "400",
+                      "color": {
+                        "t": "color.on.surface.variant",
+                        "v": "#616161"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "kind": "instance",
+                "name": "Toggle",
+                "component": "Switch",
+                "props": {
+                  "State": "On",
+                  "Disabled": "No"
+                },
+                "texts": []
+              }
+            ]
+          },
+          {
+            "kind": "box",
+            "name": "Row2",
+            "box": {
+              "fill": {
+                "t": "color.surface.base",
+                "v": "#ffffff"
+              },
+              "stroke": {
+                "color": {
+                  "t": "color.outline.variant",
+                  "v": "#cac4d0"
+                },
+                "width": {
+                  "v": 1
+                }
+              },
+              "radius": {
+                "t": "radius-medium",
+                "v": 4
+              }
+            },
+            "layout": {
+              "kind": "flex",
+              "dir": "row",
+              "alignItems": "center",
+              "justifyContent": "space-between",
+              "rowGap": 16,
+              "columnGap": 16,
+              "padding": {
+                "top": 0,
+                "right": 16,
+                "bottom": 0,
+                "left": 16
+              },
+              "sizing": {
+                "h": "fix",
+                "v": "fix"
+              }
+            },
+            "children": [
+              {
+                "kind": "box",
+                "name": "Text",
+                "box": {
+                  "fill": null,
+                  "stroke": null,
+                  "radius": {
+                    "v": 0
+                  }
+                },
+                "layout": {
+                  "kind": "flex",
+                  "dir": "column",
+                  "alignItems": "start",
+                  "justifyContent": "center",
+                  "rowGap": 2,
+                  "columnGap": 2,
+                  "padding": {
+                    "top": 0,
+                    "right": 0,
+                    "bottom": 0,
+                    "left": 0
+                  },
+                  "sizing": {
+                    "h": "fix",
+                    "v": "fix"
+                  }
+                },
+                "children": [
+                  {
+                    "kind": "text",
+                    "name": "RowTitle",
+                    "text": {
+                      "characters": "Dark theme",
+                      "fontSize": "15",
+                      "fontWeight": "600",
+                      "color": {
+                        "t": "color.on.surface.base",
+                        "v": "#242424"
+                      }
+                    }
+                  },
+                  {
+                    "kind": "text",
+                    "name": "RowSub",
+                    "text": {
+                      "characters": "Follow the system appearance",
+                      "fontSize": "12",
+                      "fontWeight": "400",
+                      "color": {
+                        "t": "color.on.surface.variant",
+                        "v": "#616161"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "kind": "instance",
+                "name": "Toggle",
+                "component": "Switch",
+                "props": {
+                  "State": "Off",
+                  "Disabled": "No"
+                },
+                "texts": []
+              }
+            ]
+          },
+          {
+            "kind": "box",
+            "name": "Row3",
+            "box": {
+              "fill": {
+                "t": "color.surface.base",
+                "v": "#ffffff"
+              },
+              "stroke": {
+                "color": {
+                  "t": "color.outline.variant",
+                  "v": "#cac4d0"
+                },
+                "width": {
+                  "v": 1
+                }
+              },
+              "radius": {
+                "t": "radius-medium",
+                "v": 4
+              }
+            },
+            "layout": {
+              "kind": "flex",
+              "dir": "row",
+              "alignItems": "center",
+              "justifyContent": "space-between",
+              "rowGap": 16,
+              "columnGap": 16,
+              "padding": {
+                "top": 0,
+                "right": 16,
+                "bottom": 0,
+                "left": 16
+              },
+              "sizing": {
+                "h": "fix",
+                "v": "fix"
+              }
+            },
+            "children": [
+              {
+                "kind": "box",
+                "name": "Text",
+                "box": {
+                  "fill": null,
+                  "stroke": null,
+                  "radius": {
+                    "v": 0
+                  }
+                },
+                "layout": {
+                  "kind": "flex",
+                  "dir": "column",
+                  "alignItems": "start",
+                  "justifyContent": "center",
+                  "rowGap": 2,
+                  "columnGap": 2,
+                  "padding": {
+                    "top": 0,
+                    "right": 0,
+                    "bottom": 0,
+                    "left": 0
+                  },
+                  "sizing": {
+                    "h": "fix",
+                    "v": "fix"
+                  }
+                },
+                "children": [
+                  {
+                    "kind": "text",
+                    "name": "RowTitle",
+                    "text": {
+                      "characters": "Weekly summary",
+                      "fontSize": "15",
+                      "fontWeight": "600",
+                      "color": {
+                        "t": "color.on.surface.base",
+                        "v": "#242424"
+                      }
+                    }
+                  },
+                  {
+                    "kind": "text",
+                    "name": "RowSub",
+                    "text": {
+                      "characters": "Sent every Monday morning",
+                      "fontSize": "12",
+                      "fontWeight": "400",
+                      "color": {
+                        "t": "color.on.surface.variant",
+                        "v": "#616161"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "kind": "instance",
+                "name": "Toggle",
+                "component": "Switch",
+                "props": {
+                  "State": "On",
+                  "Disabled": "No"
+                },
+                "texts": []
+              }
+            ]
+          },
+          {
+            "kind": "instance",
+            "name": "Notice",
+            "component": "MessageBar",
+            "props": {
+              "Intent": "Info"
+            },
+            "texts": [
+              {
+                "name": "Title",
+                "characters": "Heads up"
+              },
+              {
+                "name": "Body",
+                "characters": "Changes apply to this device only."
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

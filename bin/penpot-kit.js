@@ -38,7 +38,8 @@ const PENPOT_SCRIPTS = {
   extract: "penpot-extract.js",
   audit: "penpot-audit.js",
   "apply-tokens": "penpot-apply-tokens.js",
-  "import-icons": "penpot-import-icons.js"
+  "import-icons": "penpot-import-icons.js",
+  screens: "penpot-screens.js"
 };
 
 const DOC_FILES = {
@@ -87,6 +88,9 @@ RUNS LOCALLY (no Penpot connection needed)
                 Scan an SVG directory into an import plan.
   validate      <outDir>
                 Validate generated .tsx for invalid identifiers and broken emits.
+  screens       --screens <file> --ir <file> --out <dir> [--components ../design]
+                Emit React pages from extracted screens. Component instances become
+                component CALLS, so screens follow the design system automatically.
   scaffold      --ir <file> --out <dir> [--name <app>]
                 Generate a buildable Vite + React + TS app whose gallery renders every
                 component at every axis value. If it compiles, the system is coherent.
@@ -284,6 +288,10 @@ switch (cmd) {
 
   case "scaffold":
     delegate("emit/scaffold.js", rest);
+    break;
+
+  case "screens":
+    delegate("emit/screens.js", rest);
     break;
 
   case "push-tokens":
